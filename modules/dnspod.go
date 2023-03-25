@@ -4,6 +4,7 @@ import (
 	"domain0/models"
 	"domain0/utils"
 	"errors"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
@@ -125,32 +126,34 @@ func (t *TencentDNS) Update() error {
 	return nil
 }
 
-func (t *TencentDNSList) MultipleSelectWithIds(ids []uint64) ([]TencentDNS, error) {
+func (t *TencentDNSList) MultipleSelectWithIds(ids []string, r *interface{}) error {
 	var dnsList []TencentDNS
 
 	for _, id := range ids {
 		for _, dns := range t.Result {
-			if dns.Id == id {
+			if strconv.Itoa(int(dns.Id)) == id {
 				dnsList = append(dnsList, dns)
 			}
 		}
 	}
 
 	if len(dnsList) != len(ids) {
-		return nil, errors.New("some dns record not found")
+		return errors.New("some dns record not found")
 	}
 
-	return dnsList, nil
+	*r = dnsList
+	return nil
 }
 
-func GetTencentDNSList(d *models.Domain) (TencentDNSList, error) {
+func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 	// extract auth info
 	secretId, secretKey, err := d.ExtractAuth()
 	if err != nil {
-		return TencentDNSList{
+		c = &TencentDNSList{
 			Success: false,
 			Errors:  []interface{}{err.Error()},
-		}, err
+		}
+		return nil
 	}
 
 	// logging info
@@ -160,10 +163,11 @@ func GetTencentDNSList(d *models.Domain) (TencentDNSList, error) {
 	// get dns record list
 	api, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
 	if err != nil {
-		return TencentDNSList{
+		c = &TencentDNSList{
 			Success: false,
 			Errors:  []interface{}{err.Error()},
-		}, err
+		}
+		return err
 	}
 
 	request := dnspod.NewDescribeRecordListRequest()
@@ -171,10 +175,11 @@ func GetTencentDNSList(d *models.Domain) (TencentDNSList, error) {
 	request.Limit = common.Uint64Ptr(500)
 	response, err := api.DescribeRecordList(request)
 	if err != nil {
-		return TencentDNSList{
+		c = &TencentDNSList{
 			Success: false,
 			Errors:  []interface{}{err.Error()},
-		}, err
+		}
+		return nil
 	}
 
 	var dnsList TencentDNSList
@@ -191,5 +196,6 @@ func GetTencentDNSList(d *models.Domain) (TencentDNSList, error) {
 		})
 	}
 
-	return dnsList, nil
+	c = &dnsList
+	return nil
 }

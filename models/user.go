@@ -11,6 +11,7 @@ type User struct {
 	StuId    string `gorm:"uniqueIndex"`
 	Name     string
 	Role     UserRole `gorm:"default:0"`
+	Domains  []*Domain `gorm:"many2many:user_domains;"`
 }
 
 const (

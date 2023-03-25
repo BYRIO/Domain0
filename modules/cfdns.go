@@ -121,7 +121,7 @@ func (c *CloudflareDNS) Update() error {
 	return nil
 }
 
-func (c *CloudflareDNSList) MultipleSelectWithIds(ids []string) ([]CloudflareDNS, error) {
+func (c *CloudflareDNSList) MultipleSelectWithIds(ids []string, r *interface{}) error {
 	var dnsList []CloudflareDNS
 	for _, dns := range c.Result {
 		for _, id := range ids {
@@ -131,21 +131,23 @@ func (c *CloudflareDNSList) MultipleSelectWithIds(ids []string) ([]CloudflareDNS
 		}
 	}
 	if len(ids) != len(dnsList) {
-		return nil, errors.New("some DNS records are not found")
+		return errors.New("some DNS records are not found")
 	}
-	return dnsList, nil
+	*r = dnsList
+	return nil
 }
 
-func GetCloudflareDNSList(d *models.Domain) (CloudflareDNSList, error) {
+func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 	var dnsList CloudflareDNSList
 
 	// extract auth info
 	zoneId, apiToken, err := d.ExtractAuth()
 	if err != nil {
-		return CloudflareDNSList{
+		c = &CloudflareDNSList{
 			Success: false,
 			Errors:  []interface{}{err},
-		}, err
+		}
+		return err
 	}
 
 	// logging info
@@ -155,10 +157,11 @@ func GetCloudflareDNSList(d *models.Domain) (CloudflareDNSList, error) {
 	// get dns record list
 	api, err := cf.NewWithAPIToken(apiToken)
 	if err != nil {
-		return CloudflareDNSList{
+		c = &CloudflareDNSList{
 			Success: false,
 			Errors:  []interface{}{err},
-		}, err
+		}
+		return err
 	}
 	ctx := context.Background()
 	dnsRecords, _, err := api.ListDNSRecords(ctx,
@@ -167,10 +170,11 @@ func GetCloudflareDNSList(d *models.Domain) (CloudflareDNSList, error) {
 			ResultInfo: cf.ResultInfo{PerPage: 500},
 		})
 	if err != nil {
-		return CloudflareDNSList{
+		c = &CloudflareDNSList{
 			Success: false,
 			Errors:  []interface{}{err},
-		}, err
+		}
+		return err
 	}
 	for _, dnsRecord := range dnsRecords {
 		dnsList.Result = append(dnsList.Result, CloudflareDNS{
@@ -187,5 +191,6 @@ func GetCloudflareDNSList(d *models.Domain) (CloudflareDNSList, error) {
 		})
 	}
 	dnsList.Success = true
-	return dnsList, nil
+	c = &dnsList
+	return nil
 }

@@ -96,7 +96,7 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 			})
 		} // only admin can update role
 	} else {
-		if updateInfo.Role != nil && c.Locals("role").(models.UserRole) <= updateInfo.Role.(models.UserRole) {
+		if updateInfo.Role != nil && c.Locals("role").(models.UserRole) <= *updateInfo.Role {
 			logrus.Warnf("user %s try to overstep update role of user %s", uId, qId)
 			return c.Status(fiber.StatusForbidden).JSON(mw.User{
 				Status: fiber.ErrForbidden,
@@ -105,12 +105,12 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 		} // admin can't update role to the same or higher than himself
 	}
 
-	user.Email = utils.IfThen(updateInfo.Email != nil, updateInfo.Email.(string), user.Email)
-	user.Name = utils.IfThen(updateInfo.Name != nil, updateInfo.Name.(string), user.Name)
-	user.StuId = utils.IfThen(updateInfo.StuId != nil, updateInfo.StuId.(string), user.StuId)
-	user.Role = utils.IfThen(updateInfo.Role != nil, updateInfo.Role.(models.UserRole), user.Role)
+	user.Email = utils.IfThen(updateInfo.Email != nil, *updateInfo.Email, user.Email)
+	user.Name = utils.IfThen(updateInfo.Name != nil, *updateInfo.Name, user.Name)
+	user.StuId = utils.IfThen(updateInfo.StuId != nil, *updateInfo.StuId, user.StuId)
+	user.Role = utils.IfThen(updateInfo.Role != nil, *updateInfo.Role, user.Role)
 	if updateInfo.Password != nil {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateInfo.Password.(string)), bcrypt.MaxCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*updateInfo.Password), bcrypt.MaxCost)
 		if err != nil {
 			logrus.Errorf("bcrypt password error: %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(mw.User{

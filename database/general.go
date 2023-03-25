@@ -12,9 +12,10 @@ var DB *gorm.DB
 
 func migrate(db *gorm.DB) error {
 	flag := false
+	flag = db.SetupJoinTable(&m.User{}, "Domains", &m.UserDomain{}) != nil || flag
 	flag = db.AutoMigrate(m.Domain{}) != nil || flag
 	flag = db.AutoMigrate(m.DomainChange{}) != nil || flag
-	flag = db.AutoMigrate(m.UserDomian{}) != nil || flag
+	flag = db.AutoMigrate(m.UserDomain{}) != nil || flag
 	flag = db.AutoMigrate(m.User{}) != nil || flag
 	if flag {
 		logrus.Errorf("migrate error")

@@ -25,7 +25,7 @@ type AliDNSList struct {
 	Success  bool          `json:"success"`
 	Errors   []interface{} `json:"errors"`
 	Messages []interface{} `json:"messages"`
-	Result   []AliDNS
+	Result   []AliDNS      `json:"result"`
 }
 
 func (a *AliDNS) Create() error {
@@ -120,7 +120,7 @@ func (a *AliDNS) Update() error {
 	return nil
 }
 
-func (a *AliDNSList) MultipleSelectWithIds(ids []string) ([]AliDNS, error) {
+func (a *AliDNSList) MultipleSelectWithIds(ids []string, r *interface{}) error {
 	var dnsList []AliDNS
 
 	for _, id := range ids {
@@ -132,17 +132,22 @@ func (a *AliDNSList) MultipleSelectWithIds(ids []string) ([]AliDNS, error) {
 	}
 
 	if len(dnsList) != len(ids) {
-		return dnsList, errors.New("some DNS records are not found")
+		return errors.New("some DNS records are not found")
 	}
 
-	return dnsList, nil
+	*r = dnsList
+	return nil
 }
 
-func GetAliDNSList(d *models.Domain) (AliDNSList, error) {
+func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	// extract auth info
 	accessKeyId, accessKeySecret, err := d.ExtractAuth()
 	if err != nil {
-		return AliDNSList{}, err
+		c = &AliDNSList{
+			Success: false,
+			Errors:  []interface{}{err},
+		}
+		return err
 	}
 
 	// logging info
@@ -151,7 +156,11 @@ func GetAliDNSList(d *models.Domain) (AliDNSList, error) {
 	// get dns list
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
 	if err != nil {
-		return AliDNSList{}, err
+		c = &AliDNSList{
+			Success: false,
+			Errors:  []interface{}{err},
+		}
+		return err
 	}
 	request := alidns.CreateDescribeDomainRecordsRequest()
 	request.Scheme = "https"
@@ -159,7 +168,11 @@ func GetAliDNSList(d *models.Domain) (AliDNSList, error) {
 	request.PageSize = requests.NewInteger(500)
 	response, err := client.DescribeDomainRecords(request)
 	if err != nil {
-		return AliDNSList{}, err
+		c = &AliDNSList{
+			Success: false,
+			Errors:  []interface{}{err},
+		}
+		return err
 	}
 
 	// convert to AliDNSList
@@ -177,5 +190,6 @@ func GetAliDNSList(d *models.Domain) (AliDNSList, error) {
 		})
 	}
 
-	return aliDNSList, nil
+	c = &aliDNSList
+	return nil
 }

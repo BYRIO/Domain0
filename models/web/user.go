@@ -1,5 +1,7 @@
 package web
 
+import "domain0/models"
+
 type User struct {
 	Status interface{} `json:"status,omitempty"`
 	Errors interface{} `json:"error,omitempty"`
@@ -7,9 +9,9 @@ type User struct {
 }
 
 type UserInfoUpdate struct {
-	Email    interface{} `json:"email,omitempty"`
-	Password interface{} `json:"password,omitempty"`
-	StuId    interface{} `json:"stuid,omitempty"`
-	Name     interface{} `json:"name,omitempty"`
-	Role     interface{} `json:"role,omitempty"`
+	Email    *string          `json:"email,omitempty"`
+	Password *string          `json:"password,omitempty"`
+	StuId    *string          `json:"stuid,omitempty"`
+	Name     *string          `json:"name,omitempty"`
+	Role     *models.UserRole `json:"role,omitempty"`
 }
