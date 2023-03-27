@@ -164,7 +164,7 @@ func DomainUpdate(c *fiber.Ctx) error {
 	d.ApiId = utils.IfThen(domain.ApiId != nil, *domain.ApiId, d.ApiId)
 	d.ApiSecret = utils.IfThen(domain.ApiSecret != nil, *domain.ApiSecret, d.ApiSecret)
 	d.Vendor = utils.IfThen(domain.Vendor != nil, *domain.Vendor, d.Vendor)
-	d.ICPReg = utils.IfThen(domain.ICPReg != nil, *domain.ICPReg, d.ICPReg)
+	// d.ICPReg = utils.IfThen(domain.ICPReg != nil, *domain.ICPReg, d.ICPReg)
 	if err := db.DB.Save(&d).Error; err != nil {
 		logrus.Errorf("update domain error: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
