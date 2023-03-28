@@ -12,6 +12,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// @Summary Get domain by id
+// @Description Get domain by id
+// @Description user must have read permission to domain or be admin
+// @Tags domain
+// @Param id path string true "domain id"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=models.Domain}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id} [get]
 func DomainGet(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")
@@ -47,6 +57,18 @@ func DomainGet(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Create domain
+// @Description Create domain
+// @Description user must have contributor role or higher
+// @Tags domain
+// @Accept json
+// @Produce json
+// @Param domain body mw.DomainInfoUpdate true "domain info"
+// @Success 200 {object} mw.Domain{data=models.Domain}
+// @Failure 400 {object} mw.Domain{data=mw.DomainInfoUpdate}
+// @Failure 403 {object} mw.Domain{data=string}
+// @Failure 500 {object} mw.Domain{data=string}
+// @Router /api/v1/domain [post]
 func DomainCreate(c *fiber.Ctx) error {
 	// get query user info from jwt sub
 	uId := c.Locals("sub").(string)
@@ -123,6 +145,20 @@ func DomainCreate(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Update domain
+// @Description Update domain
+// @Description user must have manager role to domain or be admin
+// @Description **ICP_reg param can't be updated**
+// @Tags domain
+// @Accept json
+// @Produce json
+// @Param id path string true "domain id"
+// @Param domain body mw.DomainInfoUpdate true "domain info"
+// @Success 200 {object} mw.Domain{data=models.Domain}
+// @Failure 400 {object} mw.Domain{data=mw.DomainInfoUpdate}
+// @Failure 403 {object} mw.Domain{data=string}
+// @Failure 500 {object} mw.Domain{data=string}
+// @Router /api/v1/domain/{id} [put]
 func DomainUpdate(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")
@@ -180,6 +216,18 @@ func DomainUpdate(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Delete domain
+// @Description Delete domain
+// @Description user must have owner role to domain or be admin
+// @Tags domain
+// @Accept json
+// @Produce json
+// @Param id path string true "domain id"
+// @Success 200 {object} mw.Domain{data=string}
+// @Failure 403 {object} mw.Domain{data=string}
+// @Failure 404 {object} mw.Domain{data=string}
+// @Failure 500 {object} mw.Domain{data=string}
+// @Router /api/v1/domain/{id} [delete]
 func DomainDelete(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")
@@ -223,6 +271,15 @@ func DomainDelete(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary List domains
+// @Description List domains
+// @Description user can list all domains if user role level is admin
+// @Description user can list domains which user has read access if user role level is not admin
+// @Tags domain
+// @Produce json
+// @Success 200 {object} mw.Domain{data=[]models.Domain}
+// @Failure 500 {object} mw.Domain{data=string}
+// @Router /api/v1/domain [get]
 func DomainList(c *fiber.Ctx) error {
 	// get query user info from jwt sub
 	uId := c.Locals("sub").(string)

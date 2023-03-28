@@ -9,11 +9,10 @@ import (
 	"regexp"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var emailReg = regexp.MustCompile(`\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`)
@@ -31,6 +30,18 @@ func jwtSign(user m.User) (string, error) {
 	return rawToken.SignedString(c.CONFIG.JwtKey)
 }
 
+// @Summary login
+// @description login api
+// @description user can login with email or stu_id(Not implemented)
+// @Param user formData string true "user email or stu_id"
+// @Param pass formData string true "user password"
+// @Produce json
+// @Success 200 {object} wm.User{data=string}
+// @Failure 400 {object} wm.User{data=int}
+// @Failure 401 {object} wm.User{data=int}
+// @Failure 500 {object} wm.User{data=int}
+// @Router /api/v1/user/login [post]
+// @tags user
 func Login(c *fiber.Ctx) error {
 	randtag := rand.Intn(1919810)
 	user := c.FormValue("user")
@@ -43,7 +54,7 @@ func Login(c *fiber.Ctx) error {
 
 	var userObject m.User
 	if !emailReg.MatchString(user) {
-		// todo: user
+		// todo: user stu_id login
 		return c.Status(fiber.StatusNotImplemented).JSON(wm.User{
 			Status: fiber.StatusNotImplemented,
 			Errors: "not implemented",
@@ -89,6 +100,16 @@ func Login(c *fiber.Ctx) error {
 	}
 }
 
+// @Summary register
+// @description register api
+// @description user can register with email
+// @Param email formData string true "user email"
+// @Param pass formData string true "user password"
+// @Produce json
+// @Success 200 {object} wm.User{data=string}
+// @Failure 400 {object} wm.User{data=int}
+// @Failure 500 {object} wm.User{data=int}
+// @Router /api/v1/user/register [post]
 func Register(c *fiber.Ctx) error {
 	randtag := rand.Intn(1919810)
 	email := c.FormValue("email")

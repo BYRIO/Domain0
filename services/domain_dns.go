@@ -10,6 +10,18 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @Summary List Domain Dns
+// @Description List Domain Dns **AliDNS as Example, read modules for others**
+// @Description user must have read permission to domain or be admin
+// @Tags domain
+// @Accept json
+// @Param id path string true "domain id"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=[]modules.AliDNS}
+// @Failure 400 {object} mw.Domain{data=int}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id}/dns [get]
 func DomainDnsList(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")
@@ -55,6 +67,20 @@ func DomainDnsList(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Delete Domain Dns
+// @Description Delete Domain Dns
+// @Description user must have readwrite permission to domain or be admin
+// @Tags domain
+// @Accept json
+// @Param id path string true "domain id"
+// @Param dnsId path string true "dns id"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=int}
+// @Failure 400 {object} mw.Domain{data=int}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Failure 500 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id}/dns/{dnsId} [delete]
 func DomainDnsDelete(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")
@@ -123,6 +149,21 @@ func DomainDnsDelete(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Create Domain Dns
+// @Description Create Domain Dns **AliDNS as Example, read modules for others**
+// @Description user must have readwrite permission to domain or be admin
+// @Description for now only owner can edit domain which ICP_reg is true
+// @Tags domain
+// @Accept json
+// @Param id path string true "domain id"
+// @Param dns body modules.AliDNS true "dns info"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=modules.AliDNS}
+// @Failure 400 {object} mw.Domain{data=int}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Failure 500 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id}/dns [post]
 func DomainDnsCreate(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")
@@ -190,6 +231,22 @@ func DomainDnsCreate(c *fiber.Ctx) error {
 	}
 }
 
+// @Summary Update Domain Dns
+// @Description Update Domain Dns **AliDNS as Example, read modules for others**
+// @Description user must have readwrite permission to domain or be admin
+// @Description for now only owner can edit domain which ICP_reg is true
+// @Tags domain
+// @Accept json
+// @Param id path string true "domain id"
+// @Param dnsId path string true "dns id"
+// @Param dns body modules.AliDNS true "dns info"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=modules.AliDNS}
+// @Failure 400 {object} mw.Domain{data=int}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Failure 500 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id}/dns/{dnsId} [put]
 func DomainDnsUpdate(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")

@@ -18,6 +18,20 @@ func checkUserDomainPermission(uId string, dId string, target models.UserDomainR
 	return ud.Role >= target
 }
 
+// @Summary Create UserDomain Relation
+// @Description Create UserDomain Relation
+// @Description user must have manager permission to domain or be admin
+// @Description user cant create permission higher than himself
+// @Tags domain
+// @Accept json
+// @Param id path string true "domain id"
+// @Param userRole body mw.DomainUser true "userRole"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=models.UserDomain}
+// @Failure 400 {object} mw.Domain{data=int}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id}/user [post]
 func UserDomainCreate(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId, err := strconv.Atoi(c.Params("id"))
@@ -74,6 +88,20 @@ func UserDomainCreate(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary Delete UserDomain Relation
+// @Description Delete UserDomain Relation **(no update, just delete and create)**
+// @Description user must have manager permission to domain or be admin
+// @Description user cant delete permission higher than himself
+// @Tags domain
+// @Accept json
+// @Param id path string true "domain id"
+// @Param uid path string true "user id"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=int}
+// @Failure 400 {object} mw.Domain{data=int}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id}/user/{uid} [delete]
 func UserDomainDelete(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")
@@ -86,7 +114,7 @@ func UserDomainDelete(c *fiber.Ctx) error {
 
 	// check if user admin
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
-	if !(flag || checkUserDomainPermission(uId, qId, models.Owner)) {
+	if !(flag || checkUserDomainPermission(uId, qId, models.Manager)) {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -95,12 +123,30 @@ func UserDomainDelete(c *fiber.Ctx) error {
 	}
 
 	// delete user from domain
-	if err := db.DB.Where("user_id = ? AND domain_id = ?", quId, qId).Delete(&models.UserDomain{}).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
-			Status: fiber.StatusInternalServerError,
-			Errors: "internal server error",
-			Data:   nil,
-		})
+	if checkUserDomainPermission(uId, qId, models.Owner) {
+		if err := db.DB.Where("user_id = ? AND domain_id = ?", quId, qId).Delete(&models.UserDomain{}).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
+				Status: fiber.StatusInternalServerError,
+				Errors: "internal server error",
+				Data:   nil,
+			})
+		}
+	} else {
+		userDomain := models.UserDomain{}
+		if err := db.DB.Where("user_id = ? AND domain_id = ? AND role < ?", quId, qId, models.Owner).First(&userDomain).Error; err != nil {
+			return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
+				Status: fiber.StatusForbidden,
+				Errors: "permission denied",
+				Data:   qId,
+			})
+		}
+		if err := db.DB.Delete(&userDomain).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
+				Status: fiber.StatusInternalServerError,
+				Errors: "internal server error",
+				Data:   nil,
+			})
+		}
 	}
 
 	return c.Status(fiber.StatusOK).JSON(mw.Domain{
@@ -111,6 +157,18 @@ func UserDomainDelete(c *fiber.Ctx) error {
 
 // no update, just delete and create
 
+// @Summary List UserDomain Relation
+// @Description List UserDomain Relation
+// @Description user must have manager permission to domain or be admin
+// @Tags domain
+// @Accept json
+// @Param id path string true "domain id"
+// @Produce json
+// @Success 200 {object} mw.Domain{data=[]mw.DomainUserDetail}
+// @Failure 400 {object} mw.Domain{data=int}
+// @Failure 403 {object} mw.Domain{data=int}
+// @Failure 404 {object} mw.Domain{data=int}
+// @Router /api/v1/domain/{id}/user [get]
 func UserDomainList(c *fiber.Ctx) error {
 	// get domainId restful api
 	qId := c.Params("id")

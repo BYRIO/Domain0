@@ -1,0 +1,1225 @@
+basePath: /api/v1
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.Domain:
+    properties:
+      ICP_reg:
+        type: boolean
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      name:
+        type: string
+      updatedAt:
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      vendor:
+        type: string
+    type: object
+  models.User:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      domains:
+        items:
+          $ref: '#/definitions/models.Domain'
+        type: array
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/models.UserRole'
+      stuId:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.UserDomain:
+    properties:
+      createdAt:
+        type: string
+      domainId:
+        type: integer
+      role:
+        allOf:
+        - $ref: '#/definitions/models.UserDomainRole'
+        description: '0: read only, 1: read write, 2: manager, 3: owner'
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.UserDomainRole:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-comments:
+      Manager: add R/W user, delete R/W user, R/W
+      ReadWrite: manage records, but not others
+    x-enum-varnames:
+    - ReadOnly
+    - ReadWrite
+    - Manager
+    - Owner
+  models.UserRole:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-comments:
+      Admin: can submit new domain, access and delete all domains, promte/demote user
+        to Contributor, grant/deny all domains access to other Normal user
+      Contributor: can submit new domain, access and delete own domain, grant/deny
+        own domain access to other Normal user
+      Normal: only can access granted domains
+      SysAdmin: same as Admin, promte/demote user to Admin
+    x-enum-varnames:
+    - Normal
+    - Contributor
+    - Admin
+    - SysAdmin
+  modules.AliDNS:
+    properties:
+      comment:
+        type: string
+      content:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      priority:
+        description: Data     string `json:"data"`
+        type: integer
+      ttl:
+        type: integer
+      type:
+        type: string
+    type: object
+  web.Domain:
+    properties:
+      data: {}
+      errors:
+        type: string
+      status:
+        type: integer
+    type: object
+  web.DomainInfoUpdate:
+    properties:
+      ICP_reg:
+        type: boolean
+      api_id:
+        type: string
+      api_secret:
+        type: string
+      name:
+        type: string
+      vendor:
+        type: string
+    type: object
+  web.DomainUser:
+    properties:
+      role:
+        $ref: '#/definitions/models.UserDomainRole'
+      user_id:
+        type: integer
+    type: object
+  web.DomainUserDetail:
+    properties:
+      domain_id:
+        type: integer
+      domain_name:
+        type: string
+      email:
+        type: string
+      role:
+        $ref: '#/definitions/models.UserDomainRole'
+      user_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  web.User:
+    properties:
+      data: {}
+      error:
+        type: string
+      status:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: makiras.x@outlook.com
+    name: domain0
+  description: Domain0 API
+  license:
+    name: MPL(mozilla public license)-2.0
+    url: https://www.mozilla.org/en-US/MPL/2.0/
+  title: Domain0 API
+  version: 0.0.1
+paths:
+  /api/v1/domain:
+    get:
+      description: |-
+        List domains
+        user can list all domains if user role level is admin
+        user can list domains which user has read access if user role level is not admin
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Domain'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: List domains
+      tags:
+      - domain
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Create domain
+        user must have contributor role or higher
+      parameters:
+      - description: domain info
+        in: body
+        name: domain
+        required: true
+        schema:
+          $ref: '#/definitions/web.DomainInfoUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Domain'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/web.DomainInfoUpdate'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Create domain
+      tags:
+      - domain
+  /api/v1/domain/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        Delete domain
+        user must have owner role to domain or be admin
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Delete domain
+      tags:
+      - domain
+    get:
+      description: |-
+        Get domain by id
+        user must have read permission to domain or be admin
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Domain'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Get domain by id
+      tags:
+      - domain
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Update domain
+        user must have manager role to domain or be admin
+        **ICP_reg param can't be updated**
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: domain info
+        in: body
+        name: domain
+        required: true
+        schema:
+          $ref: '#/definitions/web.DomainInfoUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Domain'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/web.DomainInfoUpdate'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Update domain
+      tags:
+      - domain
+  /api/v1/domain/{id}/dns:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        List Domain Dns **AliDNS as Example, read modules for others**
+        user must have read permission to domain or be admin
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/modules.AliDNS'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: List Domain Dns
+      tags:
+      - domain
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Create Domain Dns **AliDNS as Example, read modules for others**
+        user must have readwrite permission to domain or be admin
+        for now only owner can edit domain which ICP_reg is true
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: dns info
+        in: body
+        name: dns
+        required: true
+        schema:
+          $ref: '#/definitions/modules.AliDNS'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/modules.AliDNS'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Create Domain Dns
+      tags:
+      - domain
+  /api/v1/domain/{id}/dns/{dnsId}:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        Delete Domain Dns
+        user must have readwrite permission to domain or be admin
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: dns id
+        in: path
+        name: dnsId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Delete Domain Dns
+      tags:
+      - domain
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Update Domain Dns **AliDNS as Example, read modules for others**
+        user must have readwrite permission to domain or be admin
+        for now only owner can edit domain which ICP_reg is true
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: dns id
+        in: path
+        name: dnsId
+        required: true
+        type: string
+      - description: dns info
+        in: body
+        name: dns
+        required: true
+        schema:
+          $ref: '#/definitions/modules.AliDNS'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/modules.AliDNS'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Update Domain Dns
+      tags:
+      - domain
+  /api/v1/domain/{id}/user:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        List UserDomain Relation
+        user must have manager permission to domain or be admin
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/web.DomainUserDetail'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: List UserDomain Relation
+      tags:
+      - domain
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Create UserDomain Relation
+        user must have manager permission to domain or be admin
+        user cant create permission higher than himself
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: userRole
+        in: body
+        name: userRole
+        required: true
+        schema:
+          $ref: '#/definitions/web.DomainUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserDomain'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Create UserDomain Relation
+      tags:
+      - domain
+  /api/v1/domain/{id}/user/{uid}:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        Delete UserDomain Relation **(no update, just delete and create)**
+        user must have manager permission to domain or be admin
+        user cant delete permission higher than himself
+      parameters:
+      - description: domain id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: user id
+        in: path
+        name: uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Delete UserDomain Relation
+      tags:
+      - domain
+  /api/v1/user:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Get user list
+        Only admin can get user list.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.User'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Get user list
+      tags:
+      - user
+  /api/v1/user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        Delete user by id
+        Only admin can delete user, and the user must has none role.
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Delete user
+      tags:
+      - user
+    get:
+      description: |-
+        Get user info by id
+        if id is not the same as jwt sub, jwt role must be admin
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Get user info
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Update user info by id
+        Only admin can update other user info whoes role is lower than his.
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: Update user info
+      tags:
+      - user
+  /api/v1/user/login:
+    post:
+      description: |-
+        login api
+        user can login with email or stu_id(Not implemented)
+      parameters:
+      - description: user email or stu_id
+        in: formData
+        name: user
+        required: true
+        type: string
+      - description: user password
+        in: formData
+        name: pass
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: login
+      tags:
+      - user
+  /api/v1/user/register:
+    post:
+      description: |-
+        register api
+        user can register with email
+      parameters:
+      - description: user email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: user password
+        in: formData
+        name: pass
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: register
+schemes:
+- http
+- https
+swagger: "2.0"

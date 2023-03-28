@@ -3,8 +3,8 @@ package web
 import "domain0/models"
 
 type User struct {
-	Status interface{} `json:"status,omitempty"`
-	Errors interface{} `json:"error,omitempty"`
+	Status int         `json:"status,omitempty"`
+	Errors string      `json:"error,omitempty"`
 	Data   interface{} `json:"data,omitempty"`
 }
 
