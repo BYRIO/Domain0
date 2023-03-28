@@ -17,7 +17,9 @@ import (
 // @Accept json
 // @Param id path string true "domain id"
 // @Produce json
-// @Success 200 {object} mw.Domain{data=[]modules.AliDNS}
+// @Success 200 {object} mw.Domain{data=[]modules.CloudflareDNSList}
+// @Success 200 {object} mw.Domain{data=[]modules.TencentDNSList}
+// @Success 200 {object} mw.Domain{data=[]modules.AliDNSList}
 // @Failure 400 {object} mw.Domain{data=int}
 // @Failure 403 {object} mw.Domain{data=int}
 // @Failure 404 {object} mw.Domain{data=int}
@@ -204,7 +206,7 @@ func DomainDnsCreate(c *fiber.Ctx) error {
 		})
 	}
 
-	if domain.ICPReg && !checkUserDomainPermission(uId, qId, models.Owner) {
+	if domain.ICPReg > 0 && !checkUserDomainPermission(uId, qId, models.Owner) {
 		// todo: notify
 		return c.Status(fiber.StatusNotImplemented).JSON(mw.Domain{
 			Status: fiber.StatusNotImplemented,
@@ -310,7 +312,7 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 		})
 	}
 
-	if domain.ICPReg && !checkUserDomainPermission(uId, qId, models.Owner) {
+	if domain.ICPReg > 0 && !checkUserDomainPermission(uId, qId, models.Owner) {
 		// todo: notify
 		return c.Status(fiber.StatusNotImplemented).JSON(mw.Domain{
 			Status: fiber.StatusNotImplemented,

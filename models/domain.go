@@ -17,13 +17,15 @@ type Domain struct {
 	ApiId     string  `json:"-"`
 	ApiSecret string  `json:"-"`
 	Vendor    string  `json:"vendor"`
-	ICPReg    bool    `json:"ICP_reg" gorm:"column:ICP_reg,default:false"`
+	ICPReg    uint    `json:"ICP_reg" gorm:"default:0"` // 0: no, 1: yes
 	Users     []*User `gorm:"many2many:user_domains;"`
 }
 
 type DomainChange struct {
 	gorm.Model
+	DomainId     uint
 	Domain       Domain
+	UserId       uint
 	User         User
 	ActionType   DomainAction // 0: submit, 1: edit DNS, 2: edit others, 3: grant access, 4: revoke access, 5: delete
 	ActionStatus ActionStatus // 0: reviewing, 1: approved, 2: rejected

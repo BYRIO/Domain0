@@ -488,7 +488,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/modules.AliDNS"
+                                                "$ref": "#/definitions/modules.AliDNSList"
                                             }
                                         }
                                     }
@@ -1865,7 +1865,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ICP_reg": {
-                    "type": "boolean"
+                    "description": "0: no, 1: yes",
+                    "type": "integer"
                 },
                 "createdAt": {
                     "type": "string"
@@ -2020,6 +2021,131 @@ const docTemplate = `{
                 }
             }
         },
+        "modules.AliDNSList": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {}
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {}
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/modules.AliDNS"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "modules.CloudflareDNS": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "proxied": {
+                    "type": "boolean"
+                },
+                "ttl": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "modules.CloudflareDNSList": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {}
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {}
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/modules.CloudflareDNS"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "modules.TencentDNS": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "Data     string ` + "`" + `json:\"data\"` + "`" + `",
+                    "type": "integer"
+                },
+                "ttl": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "modules.TencentDNSList": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "array",
+                    "items": {}
+                },
+                "messages": {
+                    "type": "array",
+                    "items": {}
+                },
+                "result": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/modules.TencentDNS"
+                    }
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "web.Domain": {
             "type": "object",
             "properties": {
@@ -2036,7 +2162,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "ICP_reg": {
-                    "type": "boolean"
+                    "type": "integer"
                 },
                 "api_id": {
                     "type": "string"

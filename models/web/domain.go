@@ -13,7 +13,7 @@ type DomainInfoUpdate struct {
 	ApiId     *string `json:"api_id"`
 	ApiSecret *string `json:"api_secret"`
 	Vendor    *string `json:"vendor"`
-	ICPReg    *bool   `json:"ICP_reg"`
+	ICPReg    *uint   `json:"ICP_reg"`
 }
 
 type DomainUser struct {
