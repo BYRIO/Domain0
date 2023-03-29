@@ -44,7 +44,6 @@ func main() {
 	// init router
 	routers.InitRouter(f)
 
-	f.Listen(":8080")
+	f.Listen(config.CONFIG.BindAddr)
 
-	return
 }

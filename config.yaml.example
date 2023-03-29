@@ -1,0 +1,10 @@
+bind_addr: "127.0.0.1:8080"
+database: 
+  type:     "sqlite"
+  host:     "./db.sqlite3"
+  port:     0
+  username: ""
+  password: ""
+  db_name:   ""
+log_level: 1
+jwt_key:   "secretissecretbutsecretisnotsecure"

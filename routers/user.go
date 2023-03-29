@@ -8,7 +8,7 @@ import (
 
 // Path: routers/user.go
 func SetupUserRouterPub(r fiber.Router) {
-	r.Get("/user", func(c *fiber.Ctx) error {
+	r.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
 	user := r.Group("/user")
