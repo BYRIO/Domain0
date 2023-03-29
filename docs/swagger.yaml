@@ -1,4 +1,3 @@
-basePath: /api/v1
 definitions:
   gorm.DeletedAt:
     properties:

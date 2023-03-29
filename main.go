@@ -14,7 +14,6 @@ import (
 // @title Domain0 API
 // @description Domain0 API
 // @version 0.0.1
-// @BasePath /api/v1
 // @schemes http https
 // @host localhost:8080
 // @contact.name domain0
