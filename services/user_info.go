@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	db "domain0/database"
 	"domain0/models"
 	mw "domain0/models/web"
@@ -130,7 +131,10 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 
 	user.Email = utils.IfThen(updateInfo.Email != nil, *updateInfo.Email, user.Email)
 	user.Name = utils.IfThen(updateInfo.Name != nil, *updateInfo.Name, user.Name)
-	user.StuId = utils.IfThen(updateInfo.StuId != nil, *updateInfo.StuId, user.StuId)
+	user.StuId = utils.IfThen(updateInfo.StuId != nil, sql.NullString{
+		String: *updateInfo.StuId,
+		Valid:  true,
+	}, user.StuId)
 	user.Role = utils.IfThen(updateInfo.Role != nil, *updateInfo.Role, user.Role)
 	if updateInfo.Password != nil {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*updateInfo.Password), bcrypt.MaxCost)
