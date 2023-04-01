@@ -27,10 +27,10 @@ func UserInfoGet(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if query user is the same as jwt user, or if jwt user is admin
-	if qId != uId && c.Locals("role").(models.UserRole) < models.Admin {
+	if qId != string(uId) && c.Locals("role").(models.UserRole) < models.Admin {
 		return c.Status(fiber.StatusForbidden).JSON(mw.User{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -73,10 +73,10 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if query user is the same as jwt user, or if jwt user is admin
-	if qId != uId && c.Locals("role").(models.UserRole) < models.Admin {
+	if qId != string(uId) && c.Locals("role").(models.UserRole) < models.Admin {
 		return c.Status(fiber.StatusForbidden).JSON(mw.User{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -182,10 +182,10 @@ func UserInfoDelete(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if query user is the same as jwt user, or if jwt user is admin
-	if qId != uId && c.Locals("role").(models.UserRole) < models.Admin {
+	if qId != string(uId) && c.Locals("role").(models.UserRole) < models.Admin {
 		return c.Status(fiber.StatusForbidden).JSON(mw.User{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -242,7 +242,7 @@ func UserInfoDelete(c *fiber.Ctx) error {
 // @Router /api/v1/user [get]
 func UserList(c *fiber.Ctx) error {
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if jwt user is admin
 	if c.Locals("role").(models.UserRole) < models.Admin {

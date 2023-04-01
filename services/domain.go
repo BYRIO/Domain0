@@ -5,7 +5,6 @@ import (
 	"domain0/models"
 	mw "domain0/models/web"
 	"domain0/utils"
-	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
@@ -27,7 +26,7 @@ func DomainGet(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user admin
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -71,7 +70,7 @@ func DomainGet(c *fiber.Ctx) error {
 // @Router /api/v1/domain [post]
 func DomainCreate(c *fiber.Ctx) error {
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level is high enough to create domain
 	if !(c.Locals("role").(models.UserRole) >= models.Contributor) {
@@ -116,12 +115,8 @@ func DomainCreate(c *fiber.Ctx) error {
 		}
 
 		// grant user owner rights to domain
-		uidn, err := strconv.Atoi(uId)
-		if err != nil {
-			return err
-		}
 		ud := models.UserDomain{
-			UserId:   uint(uidn),
+			UserId:   uint(uId),
 			DomainId: d.ID,
 			Role:     models.Owner,
 		}
@@ -164,7 +159,7 @@ func DomainUpdate(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -233,7 +228,7 @@ func DomainDelete(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -282,7 +277,7 @@ func DomainDelete(c *fiber.Ctx) error {
 // @Router /api/v1/domain [get]
 func DomainList(c *fiber.Ctx) error {
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level
 	var domains []models.Domain

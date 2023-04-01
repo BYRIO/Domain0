@@ -1,9 +1,11 @@
 package routers
 
 import (
+	"domain0/config"
 	"domain0/services"
 
 	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v3"
 )
 
 // Path: routers/user.go
@@ -22,4 +24,11 @@ func SetupUserRouter(r fiber.Router) {
 	user.Get("/:id", services.UserInfoGet)
 	user.Put("/:id", services.UserInfoUpdate)
 	user.Delete("/:id", services.UserInfoDelete)
+}
+
+func SetUpJwtTokenMiddleware(r fiber.Router) {
+	r.Use(jwtware.New(jwtware.Config{
+		SigningKey: []byte(config.CONFIG.JwtKey),
+	}))
+	r.Use(services.JwtToLocalsWare)
 }

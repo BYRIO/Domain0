@@ -30,6 +30,16 @@ func jwtSign(user m.User) (string, error) {
 	return rawToken.SignedString([]byte(c.CONFIG.JwtKey))
 }
 
+func JwtToLocalsWare(c *fiber.Ctx) error {
+	user := c.Locals("user").(*jwt.Token)
+	if user.Valid {
+		claims := user.Claims.(jwt.MapClaims)
+		c.Locals("sub", uint(claims["sub"].(float64)))
+		c.Locals("role", m.UserRole(claims["role"].(float64)))
+	}
+	return c.Next()
+}
+
 // @Summary login
 // @description login api
 // @description user can login with email or stu_id(Not implemented)

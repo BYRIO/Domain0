@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func checkUserDomainPermission(uId string, dId string, target models.UserDomainRole) bool {
+func checkUserDomainPermission(uId interface{}, dId interface{}, target models.UserDomainRole) bool {
 	var ud models.UserDomain
 	if err := db.DB.Where("user_id = ? AND domain_id = ?", uId, dId).First(&ud).Error; err != nil {
 		return false
@@ -54,7 +54,7 @@ func UserDomainCreate(c *fiber.Ctx) error {
 	}
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user admin
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -110,7 +110,7 @@ func UserDomainDelete(c *fiber.Ctx) error {
 	quId := c.Params("uid")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user admin
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -174,7 +174,7 @@ func UserDomainList(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user admin
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
