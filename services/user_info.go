@@ -6,6 +6,7 @@ import (
 	"domain0/models"
 	mw "domain0/models/web"
 	"domain0/utils"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
@@ -30,7 +31,7 @@ func UserInfoGet(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if query user is the same as jwt user, or if jwt user is admin
-	if qId != string(uId) && c.Locals("role").(models.UserRole) < models.Admin {
+	if qId != strconv.FormatUint(uint64(uId), 10) && c.Locals("role").(models.UserRole) < models.Admin {
 		return c.Status(fiber.StatusForbidden).JSON(mw.User{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -76,7 +77,7 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if query user is the same as jwt user, or if jwt user is admin
-	if qId != string(uId) && c.Locals("role").(models.UserRole) < models.Admin {
+	if qId != strconv.FormatUint(uint64(uId), 10) && c.Locals("role").(models.UserRole) < models.Admin {
 		return c.Status(fiber.StatusForbidden).JSON(mw.User{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -131,13 +132,15 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 
 	user.Email = *utils.IfThen(updateInfo.Email != nil, updateInfo.Email, &user.Email)
 	user.Name = *utils.IfThen(updateInfo.Name != nil, updateInfo.Name, &user.Name)
-	user.StuId = utils.IfThen(updateInfo.StuId != nil, sql.NullString{
-		String: *updateInfo.StuId,
-		Valid:  true,
-	}, user.StuId)
+	if updateInfo.StuId != nil {
+		user.StuId = sql.NullString{
+			String: *updateInfo.StuId,
+			Valid:  true,
+		}
+	}
 	user.Role = *utils.IfThen(updateInfo.Role != nil, updateInfo.Role, &user.Role)
 	if updateInfo.Password != nil {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*updateInfo.Password), bcrypt.MaxCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*updateInfo.Password), bcrypt.DefaultCost)
 		if err != nil {
 			logrus.Errorf("bcrypt password error: %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(mw.User{
@@ -185,7 +188,7 @@ func UserInfoDelete(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if query user is the same as jwt user, or if jwt user is admin
-	if qId != string(uId) && c.Locals("role").(models.UserRole) < models.Admin {
+	if qId != strconv.FormatUint(uint64(uId), 10) && c.Locals("role").(models.UserRole) < models.Admin {
 		return c.Status(fiber.StatusForbidden).JSON(mw.User{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",

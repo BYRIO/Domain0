@@ -189,7 +189,14 @@ func UserDomainList(c *fiber.Ctx) error {
 	// get user list
 	var users []mw.DomainUserDetail
 	if err := db.DB.Table("user_domains").
-		Select("user_domains.user_id, users.username, users.email, user_domains.role, user_domains.domain_id, domains.name").
+		Select([]string{
+			"`user_domains`.`user_id` as `user_id`",
+			"`users`.`name` as `username`",
+			"`users`.`email` as `email`",
+			"`user_domains`.`role` as `role`",
+			"`user_domains`.`domain_id` as `domain_id`",
+			"`domains`.`name` as `domain_name`",
+		}).
 		Joins("left join users on users.id = user_domains.user_id").
 		Joins("left join domains on domains.id = user_domains.domain_id").
 		Where("user_domains.domain_id = ?", qId).
