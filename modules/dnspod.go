@@ -20,15 +20,15 @@ type TencentDNSCustom struct {
 }
 
 type TencentDNS struct {
-	Id      uint64 `json:"id"`
-	Type    string `json:"type"`
-	Name    string `json:"name"`
-	Content string `json:"content"`
-	TTL     uint64 `json:"ttl"`
-	Commnet string `json:"comment"`
+	Id      uint64  `json:"id"`
+	Type    string  `json:"type"`
+	Name    string  `json:"name"`
+	Content string  `json:"content"`
+	TTL     uint64  `json:"ttl"`
+	Commnet *string `json:"comment"`
 	// Data     string `json:"data"`
-	Priority uint64           `json:"priority"`
-	Custom   TencentDNSCustom `json:"custom"`
+	Priority uint64            `json:"priority"`
+	Custom   *TencentDNSCustom `json:"custom"`
 	domain   models.Domain
 }
 
@@ -132,6 +132,16 @@ func (t *TencentDNS) Update() error {
 		return err
 	}
 
+	reamrkRequest := dnspod.NewModifyRecordRemarkRequest()
+
+	if t.Commnet != nil {
+		reamrkRequest.Domain = &t.domain.Name
+		reamrkRequest.RecordId = &t.Id
+		reamrkRequest.Remark = t.Commnet
+
+		client.ModifyRecordRemark(reamrkRequest) // 是否成功就不怎么重要了
+	}
+
 	return nil
 }
 
@@ -187,9 +197,9 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 			Name:     *record.Name,
 			Content:  *record.Value,
 			TTL:      *record.TTL,
-			Commnet:  *record.Remark,
+			Commnet:  record.Remark,
 			Priority: utils.IfThen(record.MX == nil, 0, *record.MX),
-			Custom:   TencentDNSCustom{Enable: *record.Status, RecordLine: *record.Line},
+			Custom:   &TencentDNSCustom{Enable: *record.Status, RecordLine: *record.Line},
 			domain:   *d,
 		})
 	}

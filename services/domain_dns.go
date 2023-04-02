@@ -303,7 +303,7 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 	}
 
 	// update dns record
-	if err := c.BodyParser(dnsObj[0].(modules.DnsObj)); err != nil {
+	if err := c.BodyParser(dnsObj[0]); err != nil {
 		logrus.Error(err)
 		return c.Status(fiber.StatusBadRequest).JSON(mw.Domain{
 			Status: fiber.StatusBadRequest,
@@ -329,10 +329,10 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 			})
 		}
 
-		logrus.Info("User: ", uId, " update dns record: ", dnsObj, " for domain: ", qId)
+		logrus.Info("User: ", uId, " update dns record: ", dnsObj[0], " for domain: ", qId)
 		return c.JSON(mw.Domain{
 			Status: fiber.StatusOK,
-			Data:   dnsObj,
+			Data:   dnsObj[0],
 		})
 	}
 }
