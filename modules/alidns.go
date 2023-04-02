@@ -143,10 +143,7 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	// extract auth info
 	accessKeyId, accessKeySecret, err := d.ExtractAuth()
 	if err != nil {
-		c = &AliDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
+		c.Errors = []interface{}{err.Error()}
 		return err
 	}
 
@@ -156,10 +153,7 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	// get dns list
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
 	if err != nil {
-		c = &AliDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
+		c.Errors = []interface{}{err.Error()}
 		return err
 	}
 	request := alidns.CreateDescribeDomainRecordsRequest()
@@ -168,17 +162,13 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	request.PageSize = requests.NewInteger(500)
 	response, err := client.DescribeDomainRecords(request)
 	if err != nil {
-		c = &AliDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
+		c.Errors = []interface{}{err.Error()}
 		return err
 	}
 
 	// convert to AliDNSList
-	var aliDNSList AliDNSList
 	for _, record := range response.DomainRecords.Record {
-		aliDNSList.Result = append(aliDNSList.Result, AliDNS{
+		c.Result = append(c.Result, AliDNS{
 			Id:      record.RecordId,
 			Type:    record.Type,
 			Name:    record.RR,
@@ -190,6 +180,6 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 		})
 	}
 
-	c = &aliDNSList
+	c.Success = true
 	return nil
 }

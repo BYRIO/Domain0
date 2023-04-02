@@ -30,7 +30,7 @@ type TencentDNSList struct {
 	Success  bool          `json:"success"`
 	Errors   []interface{} `json:"errors"`
 	Messages []interface{} `json:"messages"`
-	Result   []TencentDNS
+	Result   []TencentDNS  `json:"result"`
 }
 
 func (t *TencentDNS) Create() error {
@@ -149,10 +149,7 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 	// extract auth info
 	secretId, secretKey, err := d.ExtractAuth()
 	if err != nil {
-		c = &TencentDNSList{
-			Success: false,
-			Errors:  []interface{}{err.Error()},
-		}
+		c.Errors = []interface{}{err.Error()}
 		return nil
 	}
 
@@ -163,10 +160,7 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 	// get dns record list
 	api, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
 	if err != nil {
-		c = &TencentDNSList{
-			Success: false,
-			Errors:  []interface{}{err.Error()},
-		}
+		c.Errors = []interface{}{err.Error()}
 		return err
 	}
 
@@ -175,16 +169,12 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 	request.Limit = common.Uint64Ptr(500)
 	response, err := api.DescribeRecordList(request)
 	if err != nil {
-		c = &TencentDNSList{
-			Success: false,
-			Errors:  []interface{}{err.Error()},
-		}
+		c.Errors = []interface{}{err.Error()}
 		return nil
 	}
 
-	var dnsList TencentDNSList
 	for _, record := range response.Response.RecordList {
-		dnsList.Result = append(dnsList.Result, TencentDNS{
+		c.Result = append(c.Result, TencentDNS{
 			Id:       *record.RecordId,
 			Type:     *record.Type,
 			Name:     *record.Name,
@@ -196,6 +186,6 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 		})
 	}
 
-	c = &dnsList
+	c.Success = true
 	return nil
 }
