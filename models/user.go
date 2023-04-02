@@ -1,17 +1,28 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+
+	"gorm.io/gorm"
+)
 
 type UserRole int
 
 type User struct {
 	gorm.Model
-	Email    string `gorm:"uniqueIndex"`
-	Password string `gorm:"not null" json:"-"`
-	StuId    string `gorm:"uniqueIndex"`
+	Email    string         `gorm:"uniqueIndex"`
+	Password string         `gorm:"not null" json:"-"`
+	StuId    sql.NullString `gorm:"uniqueIndex"`
 	Name     string
-	Role     UserRole `gorm:"default:0"`
+	Role     UserRole  `gorm:"default:0"`
 	Domains  []*Domain `gorm:"many2many:user_domains;"`
+}
+
+func (u *User) GetStuId() *string {
+	if !u.StuId.Valid {
+		return nil
+	}
+	return &u.StuId.String
 }
 
 const (

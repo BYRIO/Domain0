@@ -20,14 +20,24 @@ var emailReg = regexp.MustCompile(`\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`)
 func jwtSign(user m.User) (string, error) {
 	rawToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":    user.ID,
-		"stu_id": user.StuId,
+		"stu_id": user.GetStuId(),
 		"name":   user.Name,
 		"email":  user.Email,
 		"role":   user.Role,
 		"iat":    user.CreatedAt.Unix(),
 		"exp":    user.CreatedAt.Add(time.Hour * 72).Unix(),
 	})
-	return rawToken.SignedString(c.CONFIG.JwtKey)
+	return rawToken.SignedString([]byte(c.CONFIG.JwtKey))
+}
+
+func JwtToLocalsWare(c *fiber.Ctx) error {
+	user := c.Locals("user").(*jwt.Token)
+	if user.Valid {
+		claims := user.Claims.(jwt.MapClaims)
+		c.Locals("sub", uint(claims["sub"].(float64)))
+		c.Locals("role", m.UserRole(claims["role"].(float64)))
+	}
+	return c.Next()
 }
 
 // @Summary login
@@ -123,7 +133,7 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	// hash password
-	hashedPass, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MaxCost)
+	hashedPass, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 		logrus.Errorf("%d register error : %v", randtag, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(wm.User{

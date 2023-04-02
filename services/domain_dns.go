@@ -29,7 +29,7 @@ func DomainDnsList(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -88,7 +88,7 @@ func DomainDnsDelete(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -171,7 +171,7 @@ func DomainDnsCreate(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
@@ -254,7 +254,7 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 	qId := c.Params("id")
 
 	// get query user info from jwt sub
-	uId := c.Locals("sub").(string)
+	uId := c.Locals("sub").(uint)
 
 	// check if user role level
 	flag := (c.Locals("role").(models.UserRole) >= models.Admin)

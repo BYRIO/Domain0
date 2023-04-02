@@ -1,10 +1,7 @@
 package routers
 
 import (
-	"domain0/config"
-
 	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v3"
 )
 
 func InitRouter(fiber *fiber.App) {
@@ -13,9 +10,7 @@ func InitRouter(fiber *fiber.App) {
 	SetupUserRouterPub(r)
 
 	// init fiber jwt
-	r.Use(jwtware.New(jwtware.Config{
-		SigningKey: []byte(config.CONFIG.JwtKey),
-	}))
+	SetUpJwtTokenMiddleware(r)
 
 	// init private router
 	SetupUserRouter(r)
