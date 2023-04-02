@@ -126,8 +126,8 @@ func DomainDnsDelete(c *fiber.Ctx) error {
 		})
 	}
 
-	dnsObj := interface{}(modules.DnsObjGen(&domain))
-	if err := dnsObjList.MultipleSelectWithIds([]string{dnsId}, &dnsObj); err != nil || len(dnsObj.([]interface{})) != 1 {
+	dnsObj := []interface{}{}
+	if err := dnsObjList.MultipleSelectWithIds([]string{dnsId}, &dnsObj); err != nil || len(dnsObj) != 1 {
 		logrus.Error(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 			Status: fiber.StatusInternalServerError,
@@ -136,7 +136,7 @@ func DomainDnsDelete(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := dnsObj.([]modules.DnsObj)[0].Delete(); err != nil {
+	if err := dnsObj[0].(modules.DnsObj).Delete(); err != nil {
 		logrus.Error(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 			Status: fiber.StatusInternalServerError,
@@ -292,8 +292,8 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 		})
 	}
 
-	dnsObj := interface{}(modules.DnsObjGen(&domain))
-	if err := dnsObjList.MultipleSelectWithIds([]string{dnsId}, &dnsObj); err != nil || len(dnsObj.([]interface{})) != 1 {
+	dnsObj := []interface{}{}
+	if err := dnsObjList.MultipleSelectWithIds([]string{dnsId}, &dnsObj); err != nil || len(dnsObj) != 1 {
 		logrus.Error(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 			Status: fiber.StatusInternalServerError,
@@ -303,7 +303,7 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 	}
 
 	// update dns record
-	if err := c.BodyParser(dnsObj.([]modules.DnsObj)[0]); err != nil {
+	if err := c.BodyParser(dnsObj[0].(modules.DnsObj)); err != nil {
 		logrus.Error(err)
 		return c.Status(fiber.StatusBadRequest).JSON(mw.Domain{
 			Status: fiber.StatusBadRequest,
@@ -320,7 +320,7 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 			Data:   qId,
 		})
 	} else {
-		if err := dnsObj.([]modules.DnsObj)[0].Update(); err != nil {
+		if err := dnsObj[0].(modules.DnsObj).Update(); err != nil {
 			logrus.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 				Status: fiber.StatusInternalServerError,

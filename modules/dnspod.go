@@ -14,6 +14,11 @@ import (
 
 var dnsProfile = profile.NewClientProfile()
 
+type TencentDNSCustom struct {
+	RecordLine string `json:"record_line"`
+	Enable     string `json:"enable"`
+}
+
 type TencentDNS struct {
 	Id      uint64 `json:"id"`
 	Type    string `json:"type"`
@@ -22,7 +27,8 @@ type TencentDNS struct {
 	TTL     uint64 `json:"ttl"`
 	Commnet string `json:"comment"`
 	// Data     string `json:"data"`
-	Priority uint64 `json:"priority"`
+	Priority uint64           `json:"priority"`
+	Custom   TencentDNSCustom `json:"custom"`
 	domain   models.Domain
 }
 
@@ -53,16 +59,18 @@ func (t *TencentDNS) Create() error {
 	request.Domain = &t.domain.Name
 	request.SubDomain = &t.Name
 	request.RecordType = &t.Type
-	request.RecordLine = common.StringPtr("默认")
+	request.RecordLine = common.StringPtr(utils.IfThen(t.Custom.RecordLine == "", "默认", t.Custom.RecordLine))
 	request.Value = &t.Content
 	request.TTL = utils.IfThen(t.TTL == 0, nil, &t.TTL)
 	request.MX = utils.IfThen(t.Priority == 0, nil, &t.Priority)
-	request.Status = common.StringPtr("enable")
+	request.Status = common.StringPtr(utils.IfThen(t.Custom.Enable == "", "enable", t.Custom.Enable))
 
-	if _, err := client.CreateRecord(request); err != nil {
+	res, err := client.CreateRecord(request)
+	if err != nil {
 		return err
 	}
 
+	t.Id = *res.Response.RecordId
 	return nil
 }
 
@@ -114,10 +122,11 @@ func (t *TencentDNS) Update() error {
 	request.RecordType = &t.Type
 	request.RecordId = &t.Id
 	request.SubDomain = &t.Name
+	request.RecordLine = common.StringPtr(utils.IfThen(t.Custom.RecordLine == "", "默认", t.Custom.RecordLine))
 	request.Value = &t.Content
 	request.TTL = utils.IfThen(t.TTL == 0, nil, &t.TTL)
 	request.MX = utils.IfThen(t.Priority == 0, nil, &t.Priority)
-	request.Status = common.StringPtr("enable")
+	request.Status = common.StringPtr(utils.IfThen(t.Custom.Enable == "", "enable", t.Custom.Enable))
 
 	if _, err := client.ModifyRecord(request); err != nil {
 		return err
@@ -126,22 +135,20 @@ func (t *TencentDNS) Update() error {
 	return nil
 }
 
-func (t *TencentDNSList) MultipleSelectWithIds(ids []string, r *interface{}) error {
-	var dnsList []TencentDNS
+func (t *TencentDNSList) MultipleSelectWithIds(ids []string, r *[]interface{}) error {
 
 	for _, id := range ids {
 		for _, dns := range t.Result {
 			if strconv.Itoa(int(dns.Id)) == id {
-				dnsList = append(dnsList, dns)
+				*r = append(*r, &dns)
 			}
 		}
 	}
 
-	if len(dnsList) != len(ids) {
+	if len(*r) != len(ids) {
 		return errors.New("some dns record not found")
 	}
 
-	*r = dnsList
 	return nil
 }
 
@@ -161,7 +168,7 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 	api, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
 	if err != nil {
 		c.Errors = []interface{}{err.Error()}
-		return err
+		return nil
 	}
 
 	request := dnspod.NewDescribeRecordListRequest()
@@ -182,6 +189,7 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 			TTL:      *record.TTL,
 			Commnet:  *record.Remark,
 			Priority: utils.IfThen(record.MX == nil, 0, *record.MX),
+			Custom:   TencentDNSCustom{Enable: *record.Status, RecordLine: *record.Line},
 			domain:   *d,
 		})
 	}
