@@ -24,8 +24,8 @@ func jwtSign(user m.User) (string, error) {
 		"name":   user.Name,
 		"email":  user.Email,
 		"role":   user.Role,
-		"iat":    user.CreatedAt.Unix(),
-		"exp":    user.CreatedAt.Add(time.Hour * 72).Unix(),
+		"iat":    time.Now().Unix(),
+		"exp":    time.Now().Add(time.Hour * 72).Unix(),
 	})
 	return rawToken.SignedString([]byte(c.CONFIG.JwtKey))
 }
