@@ -24,10 +24,10 @@ type CloudflareDNS struct {
 }
 
 type CloudflareDNSList struct {
-	Success  bool          `json:"success"`
-	Errors   []interface{} `json:"errors"`
-	Messages []interface{} `json:"messages"`
-	Result   []CloudflareDNS
+	Success  bool            `json:"success"`
+	Errors   []interface{}   `json:"errors"`
+	Messages []interface{}   `json:"messages"`
+	Result   []CloudflareDNS `json:"result"`
 }
 
 func (c *CloudflareDNS) Create() error {
@@ -57,10 +57,12 @@ func (c *CloudflareDNS) Create() error {
 		Data:     c.Data,
 		Priority: lutils.IfThen(c.Priority == 0, nil, &c.Priority),
 	}
-	if _, err := api.CreateDNSRecord(ctx, cf.ZoneIdentifier(zoneId), record); err != nil {
+	res, err := api.CreateDNSRecord(ctx, cf.ZoneIdentifier(zoneId), record)
+	if err != nil {
 		return err
 	}
 
+	c.Id = res.Result.ID
 	return nil
 }
 
@@ -121,33 +123,28 @@ func (c *CloudflareDNS) Update() error {
 	return nil
 }
 
-func (c *CloudflareDNSList) MultipleSelectWithIds(ids []string, r *interface{}) error {
-	var dnsList []CloudflareDNS
+func (c *CloudflareDNSList) MultipleSelectWithIds(ids []string, r *[]interface{}) error {
+
 	for _, dns := range c.Result {
 		for _, id := range ids {
 			if dns.Id == id {
-				dnsList = append(dnsList, dns)
+				*r = append(*r, &dns)
 			}
 		}
 	}
-	if len(ids) != len(dnsList) {
+	if len(ids) != len(*r) {
 		return errors.New("some DNS records are not found")
 	}
-	*r = dnsList
+
 	return nil
 }
 
 func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
-	var dnsList CloudflareDNSList
-
 	// extract auth info
 	zoneId, apiToken, err := d.ExtractAuth()
 	if err != nil {
-		c = &CloudflareDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
-		return err
+		c.Errors = []interface{}{err.Error()}
+		return nil
 	}
 
 	// logging info
@@ -157,11 +154,8 @@ func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 	// get dns record list
 	api, err := cf.NewWithAPIToken(apiToken)
 	if err != nil {
-		c = &CloudflareDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
-		return err
+		c.Errors = []interface{}{err.Error()}
+		return nil
 	}
 	ctx := context.Background()
 	dnsRecords, _, err := api.ListDNSRecords(ctx,
@@ -170,14 +164,11 @@ func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 			ResultInfo: cf.ResultInfo{PerPage: 500},
 		})
 	if err != nil {
-		c = &CloudflareDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
-		return err
+		c.Errors = []interface{}{err.Error()}
+		return nil
 	}
 	for _, dnsRecord := range dnsRecords {
-		dnsList.Result = append(dnsList.Result, CloudflareDNS{
+		c.Result = append(c.Result, CloudflareDNS{
 			Id:          dnsRecord.ID,
 			Type:        dnsRecord.Type,
 			Name:        dnsRecord.Name,
@@ -190,7 +181,6 @@ func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 			domain:      *d,
 		})
 	}
-	dnsList.Success = true
-	c = &dnsList
+	c.Success = true
 	return nil
 }

@@ -52,11 +52,12 @@ func (a *AliDNS) Create() error {
 	request.Value = a.Content
 	request.TTL = requests.NewInteger(a.TTL)
 	request.Priority = requests.NewInteger(a.Priority)
-	_, err = client.AddDomainRecord(request)
+	res, err := client.AddDomainRecord(request)
 	if err != nil {
 		return err
 	}
 
+	a.Id = res.RecordId
 	return nil
 }
 
@@ -120,22 +121,19 @@ func (a *AliDNS) Update() error {
 	return nil
 }
 
-func (a *AliDNSList) MultipleSelectWithIds(ids []string, r *interface{}) error {
-	var dnsList []AliDNS
-
+func (a *AliDNSList) MultipleSelectWithIds(ids []string, r *[]interface{}) error {
 	for _, id := range ids {
 		for _, dns := range a.Result {
 			if dns.Id == id {
-				dnsList = append(dnsList, dns)
+				*r = append(*r, &dns)
 			}
 		}
 	}
 
-	if len(dnsList) != len(ids) {
+	if len(*r) != len(ids) {
 		return errors.New("some DNS records are not found")
 	}
 
-	*r = dnsList
 	return nil
 }
 
@@ -143,11 +141,8 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	// extract auth info
 	accessKeyId, accessKeySecret, err := d.ExtractAuth()
 	if err != nil {
-		c = &AliDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
-		return err
+		c.Errors = []interface{}{err.Error()}
+		return nil
 	}
 
 	// logging info
@@ -156,11 +151,8 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	// get dns list
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
 	if err != nil {
-		c = &AliDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
-		return err
+		c.Errors = []interface{}{err.Error()}
+		return nil
 	}
 	request := alidns.CreateDescribeDomainRecordsRequest()
 	request.Scheme = "https"
@@ -168,17 +160,13 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	request.PageSize = requests.NewInteger(500)
 	response, err := client.DescribeDomainRecords(request)
 	if err != nil {
-		c = &AliDNSList{
-			Success: false,
-			Errors:  []interface{}{err},
-		}
-		return err
+		c.Errors = []interface{}{err.Error()}
+		return nil
 	}
 
 	// convert to AliDNSList
-	var aliDNSList AliDNSList
 	for _, record := range response.DomainRecords.Record {
-		aliDNSList.Result = append(aliDNSList.Result, AliDNS{
+		c.Result = append(c.Result, AliDNS{
 			Id:      record.RecordId,
 			Type:    record.Type,
 			Name:    record.RR,
@@ -190,6 +178,6 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 		})
 	}
 
-	c = &aliDNSList
+	c.Success = true
 	return nil
 }

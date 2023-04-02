@@ -12,20 +12,20 @@ type DnsObj interface {
 
 type DnsObjList interface {
 	GetDNSList(d *models.Domain) error
-	MultipleSelectWithIds(ids []string, r *interface{}) error
+	MultipleSelectWithIds(ids []string, r *[]interface{}) error
 }
 
 func DnsObjGen(d *models.Domain) DnsObj {
 	if d.Vendor == "cloudflare" {
-		return &CloudflareDNS{}
+		return &CloudflareDNS{domain: *d}
 	}
 
 	if d.Vendor == "dnspod" {
-		return &TencentDNS{}
+		return &TencentDNS{domain: *d}
 	}
 
 	if d.Vendor == "aliyun" {
-		return &AliDNS{}
+		return &AliDNS{domain: *d}
 	}
 
 	return nil

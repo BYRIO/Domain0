@@ -15,6 +15,7 @@ func SetupDomainRouter(r fiber.Router) {
 	domain.Post("/", services.DomainCreate)
 
 	SetupUserDomainRouter(domain)
+	SetupDomainDnsRouter(domain)
 }
 
 func SetupUserDomainRouter(r fiber.Router) {
