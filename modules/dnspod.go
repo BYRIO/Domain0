@@ -198,7 +198,7 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 			Content:  *record.Value,
 			TTL:      *record.TTL,
 			Commnet:  record.Remark,
-			Priority: utils.IfThen(record.MX == nil, 0, *record.MX),
+			Priority: utils.IfThenPtr(record.MX, 0),
 			Custom:   &TencentDNSCustom{Enable: *record.Status, RecordLine: *record.Line},
 			domain:   *d,
 		})

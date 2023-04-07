@@ -173,11 +173,11 @@ func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 			Type:        dnsRecord.Type,
 			Name:        dnsRecord.Name,
 			Content:     dnsRecord.Content,
-			ProxyStatus: *lutils.IfThen(dnsRecord.Proxied != nil, dnsRecord.Proxied, lutils.PtrFalse),
+			ProxyStatus: lutils.IfThenPtr(dnsRecord.Proxied, false),
 			TTL:         dnsRecord.TTL,
 			Commnet:     dnsRecord.Comment,
-			Data:        *lutils.IfThen(dnsRecord.Data != nil, (dnsRecord.Data).(*string), lutils.PtrEmptyString),
-			Priority:    *lutils.IfThen(dnsRecord.Priority != nil, dnsRecord.Priority, lutils.PtrZeroUint16),
+			Data:        lutils.IfThenPtr(dnsRecord.Data.(*string), ""),
+			Priority:    lutils.IfThenPtr(dnsRecord.Priority, uint16(0)),
 			domain:      *d,
 		})
 	}
