@@ -6,6 +6,7 @@ import (
 
 type DnsObj interface {
 	Create() error
+	Get(id string) error
 	Update() error
 	Delete() error
 }

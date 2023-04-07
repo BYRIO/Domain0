@@ -116,27 +116,18 @@ func DomainDnsDelete(c *fiber.Ctx) error {
 	dnsId := c.Params("dnsId")
 
 	// delete dns record
-	dnsObjList := modules.DnsListObjGen(&domain)
-	if err := dnsObjList.GetDNSList(&domain); err != nil {
+	// get dns record
+	dnsObj := modules.DnsObjGen(&domain)
+	if err := dnsObj.Get(dnsId); err != nil {
 		logrus.Error(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
-			Status: fiber.StatusInternalServerError,
-			Errors: err.Error(),
+		return c.Status(fiber.StatusNotFound).JSON(mw.Domain{
+			Status: fiber.StatusNotFound,
+			Errors: "dns record not found",
 			Data:   qId,
 		})
 	}
 
-	dnsObj := []interface{}{}
-	if err := dnsObjList.MultipleSelectWithIds([]string{dnsId}, &dnsObj); err != nil || len(dnsObj) != 1 {
-		logrus.Error(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
-			Status: fiber.StatusInternalServerError,
-			Errors: err.Error(),
-			Data:   qId,
-		})
-	}
-
-	if err := dnsObj[0].(modules.DnsObj).Delete(); err != nil {
+	if err := dnsObj.Delete(); err != nil {
 		logrus.Error(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 			Status: fiber.StatusInternalServerError,
@@ -282,28 +273,18 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 	dnsId := c.Params("dnsId")
 
 	// get dns record
-	dnsObjList := modules.DnsListObjGen(&domain)
-	if err := dnsObjList.GetDNSList(&domain); err != nil {
+	dnsObj := modules.DnsObjGen(&domain)
+	if err := dnsObj.Get(dnsId); err != nil {
 		logrus.Error(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
-			Status: fiber.StatusInternalServerError,
-			Errors: err.Error(),
-			Data:   qId,
-		})
-	}
-
-	dnsObj := []interface{}{}
-	if err := dnsObjList.MultipleSelectWithIds([]string{dnsId}, &dnsObj); err != nil || len(dnsObj) != 1 {
-		logrus.Error(err)
-		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
-			Status: fiber.StatusInternalServerError,
-			Errors: err.Error(),
+		return c.Status(fiber.StatusNotFound).JSON(mw.Domain{
+			Status: fiber.StatusNotFound,
+			Errors: "dns record not found",
 			Data:   qId,
 		})
 	}
 
 	// update dns record
-	if err := c.BodyParser(dnsObj[0]); err != nil {
+	if err := c.BodyParser(dnsObj); err != nil {
 		logrus.Error(err)
 		return c.Status(fiber.StatusBadRequest).JSON(mw.Domain{
 			Status: fiber.StatusBadRequest,
@@ -320,7 +301,7 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 			Data:   qId,
 		})
 	} else {
-		if err := dnsObj[0].(modules.DnsObj).Update(); err != nil {
+		if err := dnsObj.Update(); err != nil {
 			logrus.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 				Status: fiber.StatusInternalServerError,
@@ -329,10 +310,10 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 			})
 		}
 
-		logrus.Info("User: ", uId, " update dns record: ", dnsObj[0], " for domain: ", qId)
+		logrus.Info("User: ", uId, " update dns record: ", dnsObj, " for domain: ", qId)
 		return c.JSON(mw.Domain{
 			Status: fiber.StatusOK,
-			Data:   dnsObj[0],
+			Data:   dnsObj,
 		})
 	}
 }

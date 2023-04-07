@@ -66,6 +66,44 @@ func (c *CloudflareDNS) Create() error {
 	return nil
 }
 
+func (c *CloudflareDNS) Get(id string) error {
+	// set id
+	c.Id = id
+
+	// extract auth info
+	zoneId, apiToken, err := c.domain.ExtractAuth()
+	if err != nil {
+		return err
+	}
+
+	// get dns record
+	api, err := cf.NewWithAPIToken(apiToken)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	res, err := api.GetDNSRecord(ctx, cf.ZoneIdentifier(zoneId), c.Id)
+	if err != nil {
+		return err
+	}
+
+	c.Type = res.Type
+	c.Name = res.Name
+	c.Content = res.Content
+	c.ProxyStatus = lutils.IfThenPtr(res.Proxied, false)
+	c.TTL = res.TTL
+	c.Commnet = res.Comment
+	c.Data = lutils.IfThenPtr(res.Data.(*string), "")
+	c.Priority = lutils.IfThenPtr(res.Priority, uint16(0))
+
+	// logging info
+	logrus.Info("Get DNS record: ", c)
+	logrus.Debug("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
+
+	return nil
+}
+
 func (c *CloudflareDNS) Delete() error {
 	// extract auth info
 	zoneId, apiToken, err := c.domain.ExtractAuth()

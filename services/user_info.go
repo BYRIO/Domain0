@@ -130,15 +130,15 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 		} // admin can't update role to the same or higher than himself
 	}
 
-	user.Email = *utils.IfThen(updateInfo.Email != nil, updateInfo.Email, &user.Email)
-	user.Name = *utils.IfThen(updateInfo.Name != nil, updateInfo.Name, &user.Name)
+	user.Email = utils.IfThenPtr(updateInfo.Email, user.Email)
+	user.Name = utils.IfThenPtr(updateInfo.Name, user.Name)
 	if updateInfo.StuId != nil {
 		user.StuId = sql.NullString{
 			String: *updateInfo.StuId,
 			Valid:  true,
 		}
 	}
-	user.Role = *utils.IfThen(updateInfo.Role != nil, updateInfo.Role, &user.Role)
+	user.Role = utils.IfThenPtr(updateInfo.Role, user.Role)
 	if updateInfo.Password != nil {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*updateInfo.Password), bcrypt.DefaultCost)
 		if err != nil {

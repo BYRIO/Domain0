@@ -14,10 +14,10 @@ type AliDNS struct {
 	Type    string `json:"type"`
 	Name    string `json:"name"`
 	Content string `json:"content"`
-	TTL     int    `json:"ttl"`
+	TTL     int64  `json:"ttl"`
 	Commnet string `json:"comment"`
 	// Data     string `json:"data"`
-	Priority int `json:"priority"`
+	Priority int64 `json:"priority"`
 	domain   models.Domain
 }
 
@@ -50,14 +50,51 @@ func (a *AliDNS) Create() error {
 	request.RR = a.Name
 	request.Type = a.Type
 	request.Value = a.Content
-	request.TTL = requests.NewInteger(a.TTL)
-	request.Priority = requests.NewInteger(a.Priority)
+	request.TTL = requests.NewInteger64(a.TTL)
+	request.Priority = requests.NewInteger64(a.Priority)
 	res, err := client.AddDomainRecord(request)
 	if err != nil {
 		return err
 	}
 
 	a.Id = res.RecordId
+	return nil
+}
+
+func (a *AliDNS) Get(id string) error {
+	// set id
+	a.Id = id
+
+	// extract auth info
+	accessKeyId, accessKeySecret, err := a.domain.ExtractAuth()
+	if err != nil {
+		return err
+	}
+
+	// get dns record
+	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
+	if err != nil {
+		return err
+	}
+	request := alidns.CreateDescribeDomainRecordInfoRequest()
+	request.Scheme = "https"
+	request.RecordId = a.Id
+	res, err := client.DescribeDomainRecordInfo(request)
+	if err != nil {
+		return err
+	}
+
+	a.Name = res.RR
+	a.Type = res.Type
+	a.Content = res.Value
+	a.Commnet = "interface not support yet"
+	a.TTL = res.TTL
+	a.Priority = res.Priority
+
+	// logging info
+	logrus.Info("Get DNS record: ", a)
+	logrus.Debug("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
+
 	return nil
 }
 
@@ -111,8 +148,8 @@ func (a *AliDNS) Update() error {
 	request.RR = a.Name
 	request.Type = a.Type
 	request.Value = a.Content
-	request.TTL = requests.NewInteger(a.TTL)
-	request.Priority = requests.NewInteger(a.Priority)
+	request.TTL = requests.NewInteger64(a.TTL)
+	request.Priority = requests.NewInteger64(a.Priority)
 	_, err = client.UpdateDomainRecord(request)
 	if err != nil {
 		return err
@@ -171,9 +208,9 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 			Type:    record.Type,
 			Name:    record.RR,
 			Content: record.Value,
-			TTL:     int(record.TTL),
+			TTL:     record.TTL,
 			// Data:     record.Data,
-			Priority: int(record.Priority),
+			Priority: record.Priority,
 			domain:   *d,
 		})
 	}

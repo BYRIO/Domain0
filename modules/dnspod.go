@@ -74,6 +74,46 @@ func (t *TencentDNS) Create() error {
 	return nil
 }
 
+func (t *TencentDNS) Get(id string) error {
+	// set id
+	var e error
+	t.Id, e = strconv.ParseUint(id, 10, 64)
+	if e != nil {
+		return errors.New("invalid DNS record id")
+	}
+
+	// extract auth info
+	secretId, secretKey, err := t.domain.ExtractAuth()
+	if err != nil {
+		return err
+	}
+
+	// get dns record
+	client, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
+	if err != nil {
+		return err
+	}
+	request := dnspod.NewDescribeRecordRequest()
+	request.Domain = &t.domain.Name
+	request.RecordId = &t.Id
+	res, err := client.DescribeRecord(request)
+	if err != nil {
+		return err
+	}
+
+	t.Name = *res.Response.RecordInfo.SubDomain
+	t.Type = *res.Response.RecordInfo.RecordType
+	t.Content = *res.Response.RecordInfo.Value
+	t.TTL = *res.Response.RecordInfo.TTL
+	t.Priority = *res.Response.RecordInfo.MX
+	t.Commnet = res.Response.RecordInfo.Remark
+	t.Custom = &TencentDNSCustom{
+		RecordLine: *res.Response.RecordInfo.RecordLine,
+		Enable:     utils.IfThen(*res.Response.RecordInfo.Enabled == 0, "enable", "disable"),
+	}
+	return nil
+}
+
 func (t *TencentDNS) Delete() error {
 	// extract auth info
 	secretId, secretKey, err := t.domain.ExtractAuth()
