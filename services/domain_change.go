@@ -18,11 +18,11 @@ import (
 // @Router /api/v1/domain/change/myapply [get]
 func DomainChangeListMyApply(c *fiber.Ctx) error {
 	// extract info
-	uid := c.Locals("uid").(string)
+	uid := c.Locals("sub").(uint)
 
 	// get domain change list
 	var dcList []models.DomainChange
-	err := db.DB.Where("user_id = ?", uid).Find(&dcList).Error
+	err := db.DB.Preload("Domain").Preload("User").Where("user_id = ?", uid).Find(&dcList).Error
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 			Status: fiber.StatusInternalServerError,
@@ -44,11 +44,11 @@ func DomainChangeListMyApply(c *fiber.Ctx) error {
 // @Router /api/v1/domain/change/myapprove [get]
 func DomainChangeListMyApprove(c *fiber.Ctx) error {
 	// extract info
-	uid := c.Locals("uid").(string)
+	uid := c.Locals("sub").(uint)
 
 	// get domain change list
 	var dcList []models.DomainChange
-	err := db.DB.Where(
+	err := db.DB.Preload("Domain").Preload("User").Where(
 		"domain_id IN (SELECT domain_id FROM user_domains WHERE user_id = ? AND role >= ?)",
 		uid, models.Owner,
 	).Find(&dcList).Error
@@ -75,7 +75,7 @@ func DomainChangeListMyApprove(c *fiber.Ctx) error {
 // @Router /api/v1/domain/change/{id} [put]
 func DomainChangeCheck(c *fiber.Ctx) error {
 	// extract info
-	uid := c.Locals("uid").(string)
+	uid := c.Locals("sub").(uint)
 
 	// get domain change id
 	dcId := c.Params("id")
