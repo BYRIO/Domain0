@@ -2,12 +2,19 @@ package modules
 
 import (
 	"domain0/models"
+	"domain0/utils"
 	"errors"
 
+	aliErrors "github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/alidns"
 	"github.com/sirupsen/logrus"
 )
+
+type AliDNSCustom struct {
+	Status string `json:"status"`
+	Line   string `json:"line"`
+}
 
 type AliDNS struct {
 	Id      string `json:"id"`
@@ -17,7 +24,8 @@ type AliDNS struct {
 	TTL     int64  `json:"ttl"`
 	Commnet string `json:"comment"`
 	// Data     string `json:"data"`
-	Priority int64 `json:"priority"`
+	Priority int64        `json:"priority"`
+	Custom   AliDNSCustom `json:"custom"`
 	domain   models.Domain
 }
 
@@ -149,10 +157,27 @@ func (a *AliDNS) Update() error {
 	request.Type = a.Type
 	request.Value = a.Content
 	request.TTL = requests.NewInteger64(a.TTL)
+	request.Line = utils.IfThen(a.Custom.Line == "", "default", a.Custom.Line)
 	request.Priority = requests.NewInteger64(a.Priority)
 	_, err = client.UpdateDomainRecord(request)
 	if err != nil {
-		return err
+		if aliServerError, ok := err.(*aliErrors.ServerError); ok {
+			// ignore error if the record already exists because it's no need to update
+			if aliServerError.Message() != "The DNS record already exists." {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	reamarkRequest := alidns.CreateUpdateDomainRecordRemarkRequest()
+
+	if a.Commnet == "" {
+		reamarkRequest.Scheme = "https"
+		reamarkRequest.RecordId = a.Id
+		reamarkRequest.Remark = a.Commnet
+		client.UpdateDomainRecordRemark(reamarkRequest) // ignore error
 	}
 
 	return nil
@@ -211,6 +236,8 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 			TTL:     record.TTL,
 			// Data:     record.Data,
 			Priority: record.Priority,
+			Commnet:  record.Remark,
+			Custom:   AliDNSCustom{Status: record.Status, Line: record.Line},
 			domain:   *d,
 		})
 	}

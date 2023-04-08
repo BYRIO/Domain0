@@ -11,15 +11,15 @@ import (
 )
 
 type CloudflareDNS struct {
-	Id          string `json:"id"`
-	Type        string `json:"type"`
-	Name        string `json:"name"`
-	Content     string `json:"content"`
-	ProxyStatus bool   `json:"proxied"`
-	TTL         int    `json:"ttl"`
-	Commnet     string `json:"comment"`
-	Data        string `json:"data"`
-	Priority    uint16 `json:"priority"`
+	Id          string      `json:"id"`
+	Type        string      `json:"type"`
+	Name        string      `json:"name"`
+	Content     string      `json:"content"`
+	ProxyStatus bool        `json:"proxied"`
+	TTL         int         `json:"ttl"`
+	Commnet     string      `json:"comment"`
+	Data        interface{} `json:"data"`
+	Priority    uint16      `json:"priority"`
 	domain      models.Domain
 }
 
@@ -52,10 +52,10 @@ func (c *CloudflareDNS) Create() error {
 		Name:     c.Name,
 		Content:  c.Content,
 		TTL:      c.TTL,
-		Proxied:  lutils.IfThen(c.ProxyStatus, nil, &c.ProxyStatus),
+		Proxied:  &c.ProxyStatus,
 		Comment:  c.Commnet,
 		Data:     c.Data,
-		Priority: lutils.IfThen(c.Priority == 0, nil, &c.Priority),
+		Priority: &c.Priority,
 	}
 	res, err := api.CreateDNSRecord(ctx, cf.ZoneIdentifier(zoneId), record)
 	if err != nil {
@@ -150,10 +150,10 @@ func (c *CloudflareDNS) Update() error {
 		Name:     c.Name,
 		Content:  c.Content,
 		TTL:      c.TTL,
-		Proxied:  lutils.IfThen(c.ProxyStatus, nil, &c.ProxyStatus),
+		Proxied:  &c.ProxyStatus,
 		Comment:  c.Commnet,
 		Data:     c.Data,
-		Priority: lutils.IfThen(c.Priority == 0, nil, &c.Priority),
+		Priority: &c.Priority,
 	}
 	if err := api.UpdateDNSRecord(ctx, cf.ZoneIdentifier(zoneId), record); err != nil {
 		return err
@@ -214,7 +214,7 @@ func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 			ProxyStatus: lutils.IfThenPtr(dnsRecord.Proxied, false),
 			TTL:         dnsRecord.TTL,
 			Commnet:     dnsRecord.Comment,
-			Data:        lutils.IfThenPtr(dnsRecord.Data.(*string), ""),
+			Data:        dnsRecord.Data,
 			Priority:    lutils.IfThenPtr(dnsRecord.Priority, uint16(0)),
 			domain:      *d,
 		})

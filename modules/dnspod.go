@@ -27,8 +27,8 @@ type TencentDNS struct {
 	TTL     uint64  `json:"ttl"`
 	Commnet *string `json:"comment"`
 	// Data     string `json:"data"`
-	Priority uint64            `json:"priority"`
-	Custom   *TencentDNSCustom `json:"custom"`
+	Priority uint64           `json:"priority"`
+	Custom   TencentDNSCustom `json:"custom"`
 	domain   models.Domain
 }
 
@@ -107,7 +107,7 @@ func (t *TencentDNS) Get(id string) error {
 	t.TTL = *res.Response.RecordInfo.TTL
 	t.Priority = *res.Response.RecordInfo.MX
 	t.Commnet = res.Response.RecordInfo.Remark
-	t.Custom = &TencentDNSCustom{
+	t.Custom = TencentDNSCustom{
 		RecordLine: *res.Response.RecordInfo.RecordLine,
 		Enable:     utils.IfThen(*res.Response.RecordInfo.Enabled == 0, "enable", "disable"),
 	}
@@ -172,14 +172,14 @@ func (t *TencentDNS) Update() error {
 		return err
 	}
 
-	reamrkRequest := dnspod.NewModifyRecordRemarkRequest()
+	reamarkRequest := dnspod.NewModifyRecordRemarkRequest()
 
 	if t.Commnet != nil {
-		reamrkRequest.Domain = &t.domain.Name
-		reamrkRequest.RecordId = &t.Id
-		reamrkRequest.Remark = t.Commnet
+		reamarkRequest.Domain = &t.domain.Name
+		reamarkRequest.RecordId = &t.Id
+		reamarkRequest.Remark = t.Commnet
 
-		client.ModifyRecordRemark(reamrkRequest) // 是否成功就不怎么重要了
+		client.ModifyRecordRemark(reamarkRequest) // 是否成功就不怎么重要了
 	}
 
 	return nil
@@ -238,8 +238,8 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 			Content:  *record.Value,
 			TTL:      *record.TTL,
 			Commnet:  record.Remark,
-			Priority: utils.IfThenPtr(record.MX, 0),
-			Custom:   &TencentDNSCustom{Enable: *record.Status, RecordLine: *record.Line},
+			Priority: utils.IfThenPtr(record.MX, uint64(0)),
+			Custom:   TencentDNSCustom{Enable: *record.Status, RecordLine: *record.Line},
 			domain:   *d,
 		})
 	}

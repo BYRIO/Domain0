@@ -11,9 +11,9 @@ func IfThen[T any](cond bool, trueVal T, falseVal T) T {
 }
 
 // IfThenPtr is a generic function to return ptr value if ptr is not nil, otherwise return default value
-func IfThenPtr[T any](ptr *T, defaultval T) T {
-	if ptr != nil {
-		return *ptr
+func IfThenPtr[T any](ptr interface{}, defaultval T) T {
+	if ptr != nil && ptr.(*T) != nil {
+		return *ptr.(*T)
 	} else {
 		return defaultval
 	}
