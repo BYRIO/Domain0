@@ -5,6 +5,9 @@ import (
 	"domain0/models"
 	mw "domain0/models/web"
 	"domain0/modules"
+	"encoding/json"
+	"fmt"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
@@ -199,12 +202,39 @@ func DomainDnsCreate(c *fiber.Ctx) error {
 
 	if domain.ICPReg > 0 && !checkUserDomainPermission(uId, qId, models.Owner) {
 		// todo: notify
-		return c.Status(fiber.StatusNotImplemented).JSON(mw.Domain{
-			Status: fiber.StatusNotImplemented,
-			Errors: "ICP domain need owner permission",
-			Data:   qId,
+		dnsObjson, err := json.Marshal(modules.DnsChangeStruct{
+			Dns:    dnsObj,
+			Domain: domain,
 		})
-
+		if err != nil {
+			logrus.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
+				Status: fiber.StatusInternalServerError,
+				Errors: err.Error(),
+				Data:   qId,
+			})
+		}
+		nqId, _ := strconv.Atoi(qId)
+		dc := models.DomainChange{
+			DomainId:     uint(nqId),
+			UserId:       uId,
+			ActionType:   models.Submit,
+			ActionStatus: models.Reviewing,
+			Reason:       fmt.Sprintf("%d want to create dns record for domain %s:", uId, domain.Name),
+			Operation:    string(dnsObjson),
+		}
+		if err := db.DB.Create(&dc).Error; err != nil {
+			logrus.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
+				Status: fiber.StatusInternalServerError,
+				Errors: err.Error(),
+				Data:   qId,
+			})
+		}
+		return c.Status(fiber.StatusAlreadyReported).JSON(mw.Domain{
+			Status: fiber.StatusAlreadyReported,
+			Data:   "ICP domain need owner permission, please wait for approval",
+		})
 	} else {
 		// create dns record
 		if err := dnsObj.Create(); err != nil {
@@ -294,11 +324,38 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 	}
 
 	if domain.ICPReg > 0 && !checkUserDomainPermission(uId, qId, models.Owner) {
-		// todo: notify
-		return c.Status(fiber.StatusNotImplemented).JSON(mw.Domain{
-			Status: fiber.StatusNotImplemented,
-			Errors: "ICP domain need owner permission",
-			Data:   qId,
+		dnsObjson, err := json.Marshal(modules.DnsChangeStruct{
+			Dns:    dnsObj,
+			Domain: domain,
+		})
+		if err != nil {
+			logrus.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
+				Status: fiber.StatusInternalServerError,
+				Errors: err.Error(),
+				Data:   qId,
+			})
+		}
+		nqId, _ := strconv.Atoi(qId)
+		dc := models.DomainChange{
+			DomainId:     uint(nqId),
+			UserId:       uId,
+			ActionType:   models.EditDNS,
+			ActionStatus: models.Reviewing,
+			Reason:       fmt.Sprintf("%d want to update dns record for domain %s:", uId, domain.Name),
+			Operation:    string(dnsObjson),
+		}
+		if err := db.DB.Create(&dc).Error; err != nil {
+			logrus.Error(err)
+			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
+				Status: fiber.StatusInternalServerError,
+				Errors: err.Error(),
+				Data:   qId,
+			})
+		}
+		return c.Status(fiber.StatusAlreadyReported).JSON(mw.Domain{
+			Status: fiber.StatusAlreadyReported,
+			Data:   "ICP domain need owner permission, please wait for approval",
 		})
 	} else {
 		if err := dnsObj.Update(); err != nil {

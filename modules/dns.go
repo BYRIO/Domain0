@@ -16,6 +16,11 @@ type DnsObjList interface {
 	MultipleSelectWithIds(ids []string, r *[]interface{}) error
 }
 
+type DnsChangeStruct struct {
+	Dns    DnsObj        `json:"dns"`
+	Domain models.Domain `json:"domain"`
+}
+
 func DnsObjGen(d *models.Domain) DnsObj {
 	if d.Vendor == "cloudflare" {
 		return &CloudflareDNS{domain: *d}
@@ -45,5 +50,16 @@ func DnsListObjGen(d *models.Domain) DnsObjList {
 		return &AliDNSList{}
 	}
 
+	return nil
+}
+
+func (dcs *DnsChangeStruct) DnsChangeRestore() error {
+	if dcs.Domain.Vendor == "cloudflare" {
+		dcs.Dns.(*CloudflareDNS).domain = dcs.Domain
+	} else if dcs.Domain.Vendor == "dnspod" {
+		dcs.Dns.(*TencentDNS).domain = dcs.Domain
+	} else if dcs.Domain.Vendor == "aliyun" {
+		dcs.Dns.(*AliDNS).domain = dcs.Domain
+	}
 	return nil
 }
