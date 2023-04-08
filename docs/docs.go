@@ -1860,7 +1860,22 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web.Domain"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Domain"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.DomainChange"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "500": {
@@ -1885,7 +1900,22 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web.Domain"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Domain"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.DomainChange"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "500": {
@@ -1926,7 +1956,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/web.Domain"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/web.Domain"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.DomainChange"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "500": {
@@ -1951,6 +1993,19 @@ const docTemplate = `{
                     "type": "boolean"
                 }
             }
+        },
+        "models.ActionStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Reviewing",
+                "Approved",
+                "Rejected"
+            ]
         },
         "models.Domain": {
             "type": "object",
@@ -1982,6 +2037,77 @@ const docTemplate = `{
                 },
                 "vendor": {
                     "type": "string"
+                }
+            }
+        },
+        "models.DomainAction": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "x-enum-varnames": [
+                "Submit",
+                "EditDNS",
+                "EditOthers",
+                "GrantAccess",
+                "RevokeAccess",
+                "Delete"
+            ]
+        },
+        "models.DomainChange": {
+            "type": "object",
+            "properties": {
+                "actionStatus": {
+                    "description": "0: reviewing, 1: approved, 2: rejected",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ActionStatus"
+                        }
+                    ]
+                },
+                "actionType": {
+                    "description": "0: submit, 1: edit DNS, 2: edit others, 3: grant access, 4: revoke access, 5: delete",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.DomainAction"
+                        }
+                    ]
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "domain": {
+                    "$ref": "#/definitions/models.Domain"
+                },
+                "domainId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "operation": {
+                    "description": "json string, describe the operation details",
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "userId": {
+                    "type": "integer"
                 }
             }
         },

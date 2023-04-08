@@ -7,6 +7,16 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
+  models.ActionStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - Reviewing
+    - Approved
+    - Rejected
   models.Domain:
     properties:
       ICP_reg:
@@ -28,6 +38,55 @@ definitions:
         type: array
       vendor:
         type: string
+    type: object
+  models.DomainAction:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    type: integer
+    x-enum-varnames:
+    - Submit
+    - EditDNS
+    - EditOthers
+    - GrantAccess
+    - RevokeAccess
+    - Delete
+  models.DomainChange:
+    properties:
+      actionStatus:
+        allOf:
+        - $ref: '#/definitions/models.ActionStatus'
+        description: '0: reviewing, 1: approved, 2: rejected'
+      actionType:
+        allOf:
+        - $ref: '#/definitions/models.DomainAction'
+        description: '0: submit, 1: edit DNS, 2: edit others, 3: grant access, 4:
+          revoke access, 5: delete'
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      domain:
+        $ref: '#/definitions/models.Domain'
+      domainId:
+        type: integer
+      id:
+        type: integer
+      operation:
+        description: json string, describe the operation details
+        type: string
+      reason:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      userId:
+        type: integer
     type: object
   models.User:
     properties:
@@ -1339,7 +1398,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/web.Domain'
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.DomainChange'
+              type: object
         "500":
           description: Internal Server Error
           schema:
@@ -1355,7 +1419,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/web.Domain'
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.DomainChange'
+                  type: array
+              type: object
         "500":
           description: Internal Server Error
           schema:
@@ -1371,7 +1442,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/web.Domain'
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.DomainChange'
+                  type: array
+              type: object
         "500":
           description: Internal Server Error
           schema:

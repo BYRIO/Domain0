@@ -43,6 +43,8 @@ func main() {
 	// init router
 	routers.InitRouter(f)
 
-	f.Listen(config.CONFIG.BindAddr)
+	// add static resource
+	f.Static("/", "./static")
 
+	f.Listen(config.CONFIG.BindAddr)
 }

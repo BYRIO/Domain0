@@ -16,6 +16,7 @@ func SetupDomainRouter(r fiber.Router) {
 
 	SetupUserDomainRouter(domain)
 	SetupDomainDnsRouter(domain)
+	SetupDomainChangeRouter(domain)
 }
 
 func SetupUserDomainRouter(r fiber.Router) {
@@ -29,4 +30,10 @@ func SetupDomainDnsRouter(r fiber.Router) {
 	r.Post(":id/dns", services.DomainDnsCreate)
 	r.Put(":id/dns/:dnsId", services.DomainDnsUpdate)
 	r.Delete(":id/dns/:dnsId", services.DomainDnsDelete)
+}
+
+func SetupDomainChangeRouter(r fiber.Router) {
+	r.Get("/change/myapply", services.DomainChangeListMyApply)
+	r.Get("/change/myapprove", services.DomainChangeListMyApprove)
+	r.Get("/change/:id", services.DomainChangeCheck)
 }
