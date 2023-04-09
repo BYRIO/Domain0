@@ -16,11 +16,15 @@ RUN npm install -g pnpm && \
     pnpm run build
 
 # Build the container Step
-FROM alpine:latest
-WORKDIR /root/
+FROM ubuntu:latest
+WORKDIR /opt/
 COPY --from=0 /root/src/domain0 /opt
 COPY --from=1 /root/src/frontend/dist /opt/static
+RUN ln -s /root/config/config.yaml /opt/config.yaml && \
+    ln -s /root/config/db.sqlite3 /opt/db.sqlite3 && \
+    apt update && apt install -y ca-certificates sqlite3 && \
+    rm -rf /var/lib/apt/lists/*
 
-CMD ["./domain0"]
+CMD ["/opt/domain0"]
 
 

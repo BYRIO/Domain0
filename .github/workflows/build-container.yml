@@ -1,0 +1,29 @@
+# GitHub Acitions for building the container
+
+name: Build Container
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - uses: docker/setup-buildx-action@v1
+      - name: Build the container
+        run:  docker build -t byrio/domain0 .
+
+      - name: Commit to GHCR
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: byrio/domain0
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          tags: "latest,${{ github.sha }}"
