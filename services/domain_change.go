@@ -104,7 +104,17 @@ func DomainChangeCheck(c *fiber.Ctx) error {
 	// oprate
 	if opt == "accept" {
 		dc.ActionStatus = models.Approved
-		var dcs modules.DnsChangeStruct
+		var d models.Domain
+		if err := db.DB.Where("id = ?", dc.DomainId).First(&d).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
+				Status: fiber.StatusInternalServerError,
+				Errors: "Database error",
+			})
+		}
+		dcs := modules.DnsChangeStruct{
+			Dns:    modules.DnsObjGen(&d),
+			Domain: d,
+		}
 		if err := json.Unmarshal([]byte(dc.Operation), &dcs); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 				Status: fiber.StatusInternalServerError,

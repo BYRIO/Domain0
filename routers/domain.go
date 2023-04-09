@@ -35,5 +35,5 @@ func SetupDomainDnsRouter(r fiber.Router) {
 func SetupDomainChangeRouter(r fiber.Router) {
 	r.Get("/change/myapply", services.DomainChangeListMyApply)
 	r.Get("/change/myapprove", services.DomainChangeListMyApprove)
-	r.Get("/change/:id", services.DomainChangeCheck)
+	r.Put("/change/:id", services.DomainChangeCheck)
 }
