@@ -1,4 +1,4 @@
-package modules
+package dns
 
 import (
 	"context"
@@ -20,7 +20,7 @@ type CloudflareDNS struct {
 	Commnet     string      `json:"comment"`
 	Data        interface{} `json:"data"`
 	Priority    uint16      `json:"priority"`
-	domain      models.Domain
+	Domain      models.Domain  `json:"-"`
 }
 
 type CloudflareDNSList struct {
@@ -32,7 +32,7 @@ type CloudflareDNSList struct {
 
 func (c *CloudflareDNS) Create() error {
 	// extract auth info
-	zoneId, apiToken, err := c.domain.ExtractAuth()
+	zoneId, apiToken, err := c.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (c *CloudflareDNS) Get(id string) error {
 	c.Id = id
 
 	// extract auth info
-	zoneId, apiToken, err := c.domain.ExtractAuth()
+	zoneId, apiToken, err := c.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (c *CloudflareDNS) Get(id string) error {
 
 func (c *CloudflareDNS) Delete() error {
 	// extract auth info
-	zoneId, apiToken, err := c.domain.ExtractAuth()
+	zoneId, apiToken, err := c.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (c *CloudflareDNS) Delete() error {
 
 func (c *CloudflareDNS) Update() error {
 	// extract auth info
-	zoneId, apiToken, err := c.domain.ExtractAuth()
+	zoneId, apiToken, err := c.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 			Commnet:     dnsRecord.Comment,
 			Data:        dnsRecord.Data,
 			Priority:    lutils.IfThenPtr(dnsRecord.Priority, uint16(0)),
-			domain:      *d,
+			Domain:      *d,
 		})
 	}
 	c.Success = true

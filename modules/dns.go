@@ -2,6 +2,7 @@ package modules
 
 import (
 	"domain0/models"
+	. "domain0/modules/dns"
 )
 
 type DnsObj interface {
@@ -23,15 +24,15 @@ type DnsChangeStruct struct {
 
 func DnsObjGen(d *models.Domain) DnsObj {
 	if d.Vendor == "cloudflare" {
-		return &CloudflareDNS{domain: *d}
+		return &CloudflareDNS{Domain: *d}
 	}
 
 	if d.Vendor == "dnspod" {
-		return &TencentDNS{domain: *d}
+		return &TencentDNS{Domain: *d}
 	}
 
 	if d.Vendor == "aliyun" {
-		return &AliDNS{domain: *d}
+		return &AliDNS{Domain: *d}
 	}
 
 	return nil
@@ -55,11 +56,11 @@ func DnsListObjGen(d *models.Domain) DnsObjList {
 
 func (dcs *DnsChangeStruct) DnsChangeRestore() error {
 	if dcs.Domain.Vendor == "cloudflare" {
-		dcs.Dns.(*CloudflareDNS).domain = dcs.Domain
+		dcs.Dns.(*CloudflareDNS).Domain = dcs.Domain
 	} else if dcs.Domain.Vendor == "dnspod" {
-		dcs.Dns.(*TencentDNS).domain = dcs.Domain
+		dcs.Dns.(*TencentDNS).Domain = dcs.Domain
 	} else if dcs.Domain.Vendor == "aliyun" {
-		dcs.Dns.(*AliDNS).domain = dcs.Domain
+		dcs.Dns.(*AliDNS).Domain = dcs.Domain
 	}
 	return nil
 }

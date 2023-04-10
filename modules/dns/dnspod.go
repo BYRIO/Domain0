@@ -1,4 +1,4 @@
-package modules
+package dns
 
 import (
 	"domain0/models"
@@ -29,7 +29,7 @@ type TencentDNS struct {
 	// Data     string `json:"data"`
 	Priority uint64           `json:"priority"`
 	Custom   TencentDNSCustom `json:"custom"`
-	domain   models.Domain
+	Domain   models.Domain `json:"-"`
 }
 
 type TencentDNSList struct {
@@ -41,7 +41,7 @@ type TencentDNSList struct {
 
 func (t *TencentDNS) Create() error {
 	// extract auth info
-	secretId, secretKey, err := t.domain.ExtractAuth()
+	secretId, secretKey, err := t.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (t *TencentDNS) Create() error {
 		return err
 	}
 	request := dnspod.NewCreateRecordRequest()
-	request.Domain = &t.domain.Name
+	request.Domain = &t.Domain.Name
 	request.SubDomain = &t.Name
 	request.RecordType = &t.Type
 	request.RecordLine = common.StringPtr(utils.IfThen(t.Custom.RecordLine == "", "默认", t.Custom.RecordLine))
@@ -83,7 +83,7 @@ func (t *TencentDNS) Get(id string) error {
 	}
 
 	// extract auth info
-	secretId, secretKey, err := t.domain.ExtractAuth()
+	secretId, secretKey, err := t.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (t *TencentDNS) Get(id string) error {
 		return err
 	}
 	request := dnspod.NewDescribeRecordRequest()
-	request.Domain = &t.domain.Name
+	request.Domain = &t.Domain.Name
 	request.RecordId = &t.Id
 	res, err := client.DescribeRecord(request)
 	if err != nil {
@@ -116,7 +116,7 @@ func (t *TencentDNS) Get(id string) error {
 
 func (t *TencentDNS) Delete() error {
 	// extract auth info
-	secretId, secretKey, err := t.domain.ExtractAuth()
+	secretId, secretKey, err := t.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (t *TencentDNS) Delete() error {
 		return err
 	}
 	request := dnspod.NewDeleteRecordRequest()
-	request.Domain = &t.domain.Name
+	request.Domain = &t.Domain.Name
 	request.RecordId = &t.Id
 
 	if _, err := client.DeleteRecord(request); err != nil {
@@ -143,7 +143,7 @@ func (t *TencentDNS) Delete() error {
 
 func (t *TencentDNS) Update() error {
 	// extract auth info
-	secretId, secretKey, err := t.domain.ExtractAuth()
+	secretId, secretKey, err := t.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (t *TencentDNS) Update() error {
 		return err
 	}
 	request := dnspod.NewModifyRecordRequest()
-	request.Domain = &t.domain.Name
+	request.Domain = &t.Domain.Name
 	request.RecordType = &t.Type
 	request.RecordId = &t.Id
 	request.SubDomain = &t.Name
@@ -175,7 +175,7 @@ func (t *TencentDNS) Update() error {
 	reamarkRequest := dnspod.NewModifyRecordRemarkRequest()
 
 	if t.Commnet != nil {
-		reamarkRequest.Domain = &t.domain.Name
+		reamarkRequest.Domain = &t.Domain.Name
 		reamarkRequest.RecordId = &t.Id
 		reamarkRequest.Remark = t.Commnet
 
@@ -240,7 +240,7 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 			Commnet:  record.Remark,
 			Priority: utils.IfThenPtr(record.MX, uint64(0)),
 			Custom:   TencentDNSCustom{Enable: *record.Status, RecordLine: *record.Line},
-			domain:   *d,
+			Domain:   *d,
 		})
 	}
 

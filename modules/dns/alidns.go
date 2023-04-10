@@ -1,4 +1,4 @@
-package modules
+package dns
 
 import (
 	"domain0/models"
@@ -26,7 +26,7 @@ type AliDNS struct {
 	// Data     string `json:"data"`
 	Priority int64        `json:"priority"`
 	Custom   AliDNSCustom `json:"custom"`
-	domain   models.Domain
+	Domain   models.Domain `json:"-"`
 }
 
 type AliDNSList struct {
@@ -38,7 +38,7 @@ type AliDNSList struct {
 
 func (a *AliDNS) Create() error {
 	// extract auth info
-	accessKeyId, accessKeySecret, err := a.domain.ExtractAuth()
+	accessKeyId, accessKeySecret, err := a.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (a *AliDNS) Create() error {
 	}
 	request := alidns.CreateAddDomainRecordRequest()
 	request.Scheme = "https"
-	request.DomainName = a.domain.Name
+	request.DomainName = a.Domain.Name
 	request.RR = a.Name
 	request.Type = a.Type
 	request.Value = a.Content
@@ -74,7 +74,7 @@ func (a *AliDNS) Get(id string) error {
 	a.Id = id
 
 	// extract auth info
-	accessKeyId, accessKeySecret, err := a.domain.ExtractAuth()
+	accessKeyId, accessKeySecret, err := a.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (a *AliDNS) Get(id string) error {
 
 func (a *AliDNS) Delete() error {
 	// extract auth info
-	accessKeyId, accessKeySecret, err := a.domain.ExtractAuth()
+	accessKeyId, accessKeySecret, err := a.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (a *AliDNS) Delete() error {
 
 func (a *AliDNS) Update() error {
 	// extract auth info
-	accessKeyId, accessKeySecret, err := a.domain.ExtractAuth()
+	accessKeyId, accessKeySecret, err := a.Domain.ExtractAuth()
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 			Priority: record.Priority,
 			Commnet:  record.Remark,
 			Custom:   AliDNSCustom{Status: record.Status, Line: record.Line},
-			domain:   *d,
+			Domain:   *d,
 		})
 	}
 
