@@ -45,6 +45,9 @@ func main() {
 
 	// add static resource
 	f.Static("/", "./static")
+	f.Use(func(c *fiber.Ctx) error {
+		return c.SendFile("./static/index.html")
+	})
 
 	f.Listen(config.CONFIG.BindAddr)
 }

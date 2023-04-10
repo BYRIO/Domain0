@@ -94,7 +94,7 @@ func (c *CloudflareDNS) Get(id string) error {
 	c.ProxyStatus = lutils.IfThenPtr(res.Proxied, false)
 	c.TTL = res.TTL
 	c.Commnet = res.Comment
-	c.Data = lutils.IfThenPtr(res.Data.(*string), "")
+	c.Data = lutils.IfThenPtr(res.Data, "")
 	c.Priority = lutils.IfThenPtr(res.Priority, uint16(0))
 
 	// logging info
