@@ -5,6 +5,8 @@ import (
 	"domain0/models"
 	mw "domain0/models/web"
 	"domain0/modules"
+
+	// md "domain0/modules/dns"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -20,9 +22,9 @@ import (
 // @Accept json
 // @Param id path string true "domain id"
 // @Produce json
-// @Success 200 {object} mw.Domain{data=[]modules.CloudflareDNSList}
-// @Success 200 {object} mw.Domain{data=[]modules.TencentDNSList}
-// @Success 200 {object} mw.Domain{data=[]modules.AliDNSList}
+// @Success 200 {object} mw.Domain{data=[]md.CloudflareDNSList}
+// @Success 200 {object} mw.Domain{data=[]md.TencentDNSList}
+// @Success 200 {object} mw.Domain{data=[]md.AliDNSList}
 // @Failure 400 {object} mw.Domain{data=int}
 // @Failure 403 {object} mw.Domain{data=int}
 // @Failure 404 {object} mw.Domain{data=int}
@@ -152,9 +154,11 @@ func DomainDnsDelete(c *fiber.Ctx) error {
 // @Tags domain
 // @Accept json
 // @Param id path string true "domain id"
-// @Param dns body modules.AliDNS true "dns info"
+// @Param dns body md.AliDNS true "dns info"
 // @Produce json
-// @Success 200 {object} mw.Domain{data=modules.AliDNS}
+// @Success 200 {object} mw.Domain{data=md.AliDNS}
+// @Success 200 {object} mw.Domain{data=md.TencentDNS}
+// @Success 200 {object} mw.Domain{data=md.CloudflareDNS}
 // @Failure 400 {object} mw.Domain{data=int}
 // @Failure 403 {object} mw.Domain{data=int}
 // @Failure 404 {object} mw.Domain{data=int}
@@ -262,9 +266,11 @@ func DomainDnsCreate(c *fiber.Ctx) error {
 // @Accept json
 // @Param id path string true "domain id"
 // @Param dnsId path string true "dns id"
-// @Param dns body modules.AliDNS true "dns info"
+// @Param dns body md.AliDNS true "dns info"
 // @Produce json
-// @Success 200 {object} mw.Domain{data=modules.AliDNS}
+// @Success 200 {object} mw.Domain{data=md.AliDNS}
+// @Success 200 {object} mw.Domain{data=md.TencentDNS}
+// @Success 200 {object} mw.Domain{data=md.CloudflareDNS}
 // @Failure 400 {object} mw.Domain{data=int}
 // @Failure 403 {object} mw.Domain{data=int}
 // @Failure 404 {object} mw.Domain{data=int}

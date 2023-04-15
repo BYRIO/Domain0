@@ -1,4 +1,123 @@
 definitions:
+  dns.AliDNS:
+    properties:
+      comment:
+        type: string
+      content:
+        type: string
+      custom:
+        $ref: '#/definitions/dns.AliDNSCustom'
+      id:
+        type: string
+      name:
+        type: string
+      priority:
+        description: Data     string `json:"data"`
+        type: integer
+      ttl:
+        type: integer
+      type:
+        type: string
+    type: object
+  dns.AliDNSCustom:
+    properties:
+      line:
+        type: string
+      status:
+        type: string
+    type: object
+  dns.AliDNSList:
+    properties:
+      errors:
+        items: {}
+        type: array
+      messages:
+        items: {}
+        type: array
+      result:
+        items:
+          $ref: '#/definitions/dns.AliDNS'
+        type: array
+      success:
+        type: boolean
+    type: object
+  dns.CloudflareDNS:
+    properties:
+      comment:
+        type: string
+      content:
+        type: string
+      data: {}
+      id:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      proxied:
+        type: boolean
+      ttl:
+        type: integer
+      type:
+        type: string
+    type: object
+  dns.CloudflareDNSList:
+    properties:
+      errors:
+        items: {}
+        type: array
+      messages:
+        items: {}
+        type: array
+      result:
+        items:
+          $ref: '#/definitions/dns.CloudflareDNS'
+        type: array
+      success:
+        type: boolean
+    type: object
+  dns.TencentDNS:
+    properties:
+      comment:
+        type: string
+      content:
+        type: string
+      custom:
+        $ref: '#/definitions/dns.TencentDNSCustom'
+      id:
+        type: integer
+      name:
+        type: string
+      priority:
+        description: Data     string `json:"data"`
+        type: integer
+      ttl:
+        type: integer
+      type:
+        type: string
+    type: object
+  dns.TencentDNSCustom:
+    properties:
+      enable:
+        type: string
+      record_line:
+        type: string
+    type: object
+  dns.TencentDNSList:
+    properties:
+      errors:
+        items: {}
+        type: array
+      messages:
+        items: {}
+        type: array
+      result:
+        items:
+          $ref: '#/definitions/dns.TencentDNS'
+        type: array
+      success:
+        type: boolean
+    type: object
   gorm.DeletedAt:
     properties:
       time:
@@ -160,117 +279,6 @@ definitions:
     - Contributor
     - Admin
     - SysAdmin
-  modules.AliDNS:
-    properties:
-      comment:
-        type: string
-      content:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      priority:
-        description: Data     string `json:"data"`
-        type: integer
-      ttl:
-        type: integer
-      type:
-        type: string
-    type: object
-  modules.AliDNSList:
-    properties:
-      errors:
-        items: {}
-        type: array
-      messages:
-        items: {}
-        type: array
-      result:
-        items:
-          $ref: '#/definitions/modules.AliDNS'
-        type: array
-      success:
-        type: boolean
-    type: object
-  modules.CloudflareDNS:
-    properties:
-      comment:
-        type: string
-      content:
-        type: string
-      data:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      priority:
-        type: integer
-      proxied:
-        type: boolean
-      ttl:
-        type: integer
-      type:
-        type: string
-    type: object
-  modules.CloudflareDNSList:
-    properties:
-      errors:
-        items: {}
-        type: array
-      messages:
-        items: {}
-        type: array
-      result:
-        items:
-          $ref: '#/definitions/modules.CloudflareDNS'
-        type: array
-      success:
-        type: boolean
-    type: object
-  modules.TencentDNS:
-    properties:
-      comment:
-        type: string
-      content:
-        type: string
-      custom:
-        $ref: '#/definitions/modules.TencentDNSCustom'
-      id:
-        type: integer
-      name:
-        type: string
-      priority:
-        description: Data     string `json:"data"`
-        type: integer
-      ttl:
-        type: integer
-      type:
-        type: string
-    type: object
-  modules.TencentDNSCustom:
-    properties:
-      enable:
-        type: string
-      record_line:
-        type: string
-    type: object
-  modules.TencentDNSList:
-    properties:
-      errors:
-        items: {}
-        type: array
-      messages:
-        items: {}
-        type: array
-      result:
-        items:
-          $ref: '#/definitions/modules.TencentDNS'
-        type: array
-      success:
-        type: boolean
-    type: object
   sql.NullString:
     properties:
       string:
@@ -612,7 +620,7 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/modules.AliDNSList'
+                    $ref: '#/definitions/dns.AliDNSList'
                   type: array
               type: object
         "400":
@@ -663,7 +671,7 @@ paths:
         name: dns
         required: true
         schema:
-          $ref: '#/definitions/modules.AliDNS'
+          $ref: '#/definitions/dns.AliDNS'
       produces:
       - application/json
       responses:
@@ -674,7 +682,7 @@ paths:
             - $ref: '#/definitions/web.Domain'
             - properties:
                 data:
-                  $ref: '#/definitions/modules.AliDNS'
+                  $ref: '#/definitions/dns.CloudflareDNS'
               type: object
         "400":
           description: Bad Request
@@ -807,7 +815,7 @@ paths:
         name: dns
         required: true
         schema:
-          $ref: '#/definitions/modules.AliDNS'
+          $ref: '#/definitions/dns.AliDNS'
       produces:
       - application/json
       responses:
@@ -818,7 +826,7 @@ paths:
             - $ref: '#/definitions/web.Domain'
             - properties:
                 data:
-                  $ref: '#/definitions/modules.AliDNS'
+                  $ref: '#/definitions/dns.CloudflareDNS'
               type: object
         "400":
           description: Bad Request
@@ -1036,6 +1044,84 @@ paths:
                   type: integer
               type: object
       summary: Delete UserDomain Relation
+      tags:
+      - domain
+  /api/v1/domain/change/{id}:
+    put:
+      parameters:
+      - description: domain change id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'operation: accept or reject'
+        in: query
+        name: opt
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.DomainChange'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Domain'
+      summary: modify domain change request
+      tags:
+      - domain
+  /api/v1/domain/change/myapply:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.DomainChange'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Domain'
+      summary: list all domain change requests generated by the user
+      tags:
+      - domain
+  /api/v1/domain/change/myapprove:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.Domain'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.DomainChange'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/web.Domain'
+      summary: list all domain change requests that the user can approve
       tags:
       - domain
   /api/v1/user:
@@ -1274,6 +1360,64 @@ paths:
       summary: Update user info
       tags:
       - user
+  /api/v1/user/callback:
+    get:
+      description: |-
+        oauth callback api
+        user can login with feishu for now
+      parameters:
+      - description: oauth code
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: oauth state
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/web.User'
+            - properties:
+                data:
+                  type: integer
+              type: object
+      summary: oauth callback
+  /api/v1/user/feishu:
+    get:
+      description: feishu auth redirect api
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+      summary: feishu auth redirect
   /api/v1/user/login:
     post:
       description: |-
@@ -1379,84 +1523,6 @@ paths:
                   type: integer
               type: object
       summary: register
-  /domain/change/{id}:
-    put:
-      parameters:
-      - description: domain change id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: 'operation: accept or reject'
-        in: query
-        name: opt
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/web.Domain'
-            - properties:
-                data:
-                  $ref: '#/definitions/models.DomainChange'
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/web.Domain'
-      summary: modify domain change request
-      tags:
-      - domain
-  /domain/change/myapply:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/web.Domain'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/models.DomainChange'
-                  type: array
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/web.Domain'
-      summary: list all domain change requests generated by the user
-      tags:
-      - domain
-  /domain/change/myapprove:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/web.Domain'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/models.DomainChange'
-                  type: array
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/web.Domain'
-      summary: list all domain change requests that the user can approve
-      tags:
-      - domain
 schemes:
 - http
 - https

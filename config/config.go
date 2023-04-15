@@ -15,11 +15,18 @@ type DatabaseConfig struct {
 	DbName   string `yaml:"db_name"`
 }
 
+type FeishuConfig struct {
+	AppID       string `yaml:"app_id"`
+	AppSecret   string `yaml:"app_secret"`
+	RedirectURL string `yaml:"redirect_url"`
+}
+
 type Config struct {
 	BindAddr string         `yaml:"bind_addr"`
 	Database DatabaseConfig `yaml:"database"`
 	LogLevel int            `yaml:"log_level"` // 0: debug, 1: info, 2: warn, 3: error
 	JwtKey   string         `yaml:"jwt_key"`
+	Feishu   FeishuConfig   `yaml:"feishu"`
 }
 
 var CONFIG = Config{
@@ -34,6 +41,11 @@ var CONFIG = Config{
 	},
 	LogLevel: 1,
 	JwtKey:   "secretissecretbutsecretisnotsecure",
+	Feishu: FeishuConfig{
+		AppID:       "",
+		AppSecret:   "",
+		RedirectURL: "",
+	},
 }
 
 func Read(filename string) error {

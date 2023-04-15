@@ -16,6 +16,8 @@ func SetupUserRouterPub(r fiber.Router) {
 	user := r.Group("/user")
 	user.Post("/login", services.Login)
 	user.Post("/register", services.Register)
+	user.Get("/feishu", services.FeishuAuthRedirect)
+	user.Get("/callback", services.Callback)
 }
 
 func SetupUserRouter(r fiber.Router) {
