@@ -3,6 +3,7 @@ package utils
 import (
 	"domain0/config"
 	"encoding/json"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
@@ -30,7 +31,7 @@ type AuthInfo struct {
 	AvatarBig    string
 	UserID       string
 	EmployeeID   string
-	Email        string
+	Email        string `json:"enterprise_email"`
 	Mobile       string
 }
 
@@ -49,7 +50,7 @@ func feishuRedirectToTokenURL(code string) string {
 }
 
 func feishuGetUserInfoURL() string {
-	return "https://passport.feishu.cn/suite/passport/oauth/userinfo"
+	return "https://open.feishu.cn/open-apis/authen/v1/user_info"
 }
 
 func FeishuGetUserInfo(code string) (AuthInfo, error) {
@@ -67,9 +68,9 @@ func FeishuGetUserInfo(code string) (AuthInfo, error) {
 	}
 
 	hcode, body, errs := a.Bytes()
-	if errs != nil || hcode != 200 {
+	if len(errs) != 0 || hcode != 200 {
 		logrus.Error(errs)
-		return AuthInfo{}, errs[0]
+		return AuthInfo{}, errors.New("feishu auth failed")
 	}
 
 	var accessTokenInfo AccessTokenInfo
@@ -94,9 +95,9 @@ func FeishuGetUserInfo(code string) (AuthInfo, error) {
 	}
 
 	hcode, body, errs = u.Bytes()
-	if errs != nil || hcode != 200 {
+	if len(errs) != 0 || hcode != 200 {
 		logrus.Error(errs)
-		return AuthInfo{}, errs[0]
+		return AuthInfo{}, errors.New("feishu auth failed")
 	}
 
 	var feishuInfo AuthInfo
