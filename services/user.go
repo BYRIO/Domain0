@@ -211,7 +211,7 @@ func Callback(c *fiber.Ctx) error {
 	if state == "feishu" {
 		var err error
 		userInfo, err = utils.FeishuGetUserInfo(code)
-		if err != nil {
+		if err != nil || userInfo.Email == "" {
 			logrus.Errorf("feishu get user info error : %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(wm.User{
 				Status: fiber.StatusInternalServerError,

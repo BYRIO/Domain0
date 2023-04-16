@@ -4,40 +4,47 @@ import (
 	"domain0/config"
 	"encoding/json"
 	"errors"
+	"net/url"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 )
 
 type AccessTokenInfo struct {
-	AccessToken      string
-	TokenType        string
-	ExpiresIn        int
-	RefreshToken     string
-	RefreshExpiresIn string
+	AccessToken      string `json:"access_token"`
+	TokenType        string `json:"token_type"`
+	ExpiresIn        int    `json:"expires_in"`
+	RefreshToken     string `json:"refresh_token"`
+	RefreshExpiresIn int    `json:"refresh_expires_in"`
 }
 
 type AuthInfo struct {
-	Sub          string
-	Name         string
-	Picture      string
-	OpenID       string
-	UnionID      string
-	EnName       string
-	TenantKey    string
-	AvatarURL    string
-	AvatarThumb  string
-	AvatarMiddle string
-	AvatarBig    string
-	UserID       string
-	EmployeeID   string
-	Email        string `json:"enterprise_email"`
-	Mobile       string
+	// Sub          string `json:"sub"`
+	// Name         string `json:"name"`
+	// Picture      string `json:"picture"`
+	// OpenID       string `json:"open_id"`
+	// UnionID      string `json:"union_id"`
+	// EnName       string `json:"en_name"`
+	// TenantKey    string `json:"tenant_key"`
+	// AvatarURL    string `json:"avatar_url"`
+	// AvatarThumb  string `json:"avatar_thumb"`
+	// AvatarMiddle string `json:"avatar_middle"`
+	// AvatarBig    string `json:"avatar_big"`
+	// UserID       string `json:"user_id"`
+	// EmployeeID   string `json:"employee_id"`
+	Email string `json:"enterprise_email"`
+	// Mobile       string `json:"mobile"`
+}
+
+type FeishuAuthInfoResponse struct {
+	Code    int      `json:"code"`
+	Message string   `json:"msg"`
+	Data    AuthInfo `json:"data"`
 }
 
 func FeishuRedirectToCodeURL() string {
 	return "https://passport.feishu.cn/suite/passport/oauth/authorize?client_id=" + config.CONFIG.Feishu.AppID +
-		"&redirect_uri=" + config.CONFIG.Feishu.RedirectURL +
+		"&redirect_uri=" + url.QueryEscape(config.CONFIG.Feishu.RedirectURL) +
 		"&response_type=code" +
 		"&state=feishu"
 }
@@ -46,7 +53,7 @@ func feishuRedirectToTokenURL(code string) string {
 	return "https://passport.feishu.cn/suite/passport/oauth/token?grant_type=authorization_code&client_id=" + config.CONFIG.Feishu.AppID +
 		"&client_secret=" + config.CONFIG.Feishu.AppSecret +
 		"&code=" + code +
-		"&redirect_uri=" + config.CONFIG.Feishu.RedirectURL
+		"&redirect_uri=" + url.QueryEscape(config.CONFIG.Feishu.RedirectURL)
 }
 
 func feishuGetUserInfoURL() string {
@@ -100,12 +107,16 @@ func FeishuGetUserInfo(code string) (AuthInfo, error) {
 		return AuthInfo{}, errors.New("feishu auth failed")
 	}
 
-	var feishuInfo AuthInfo
-	err = json.Unmarshal(body, &feishuInfo)
+	var feishuInfoResponse FeishuAuthInfoResponse
+	err = json.Unmarshal(body, &feishuInfoResponse)
 	if err != nil {
 		logrus.Error(err)
 		return AuthInfo{}, err
 	}
+	if feishuInfoResponse.Code != 0 {
+		logrus.Error(feishuInfoResponse.Message)
+		return AuthInfo{}, errors.New("feishu auth failed")
+	}
 
-	return feishuInfo, nil
+	return feishuInfoResponse.Data, nil
 }
