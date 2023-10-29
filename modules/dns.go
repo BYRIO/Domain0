@@ -35,6 +35,10 @@ func DnsObjGen(d *models.Domain) DnsObj {
 		return &AliDNS{Domain: *d}
 	}
 
+	if d.Vendor == "huawei" {
+		return &HuaweiDNS{Domain: *d}
+	}
+
 	return nil
 }
 
@@ -51,6 +55,9 @@ func DnsListObjGen(d *models.Domain) DnsObjList {
 		return &AliDNSList{}
 	}
 
+	if d.Vendor == "huawei" {
+		return &HuaweiDNSList{}
+	}
 	return nil
 }
 
@@ -61,6 +68,8 @@ func (dcs *DnsChangeStruct) DnsChangeRestore() error {
 		dcs.Dns.(*TencentDNS).Domain = dcs.Domain
 	} else if dcs.Domain.Vendor == "aliyun" {
 		dcs.Dns.(*AliDNS).Domain = dcs.Domain
+	} else if dcs.Domain.Vendor == "huawei" {
+		dcs.Dns.(*HuaweiDNS).Domain = dcs.Domain
 	}
 	return nil
 }
