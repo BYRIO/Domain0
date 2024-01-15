@@ -19,6 +19,7 @@ type Domain struct {
 	Vendor    string  `json:"vendor"`
 	ICPReg    uint    `json:"ICP_reg" gorm:"default:0"` // 0: no, 1: yes
 	Users     []*User `gorm:"many2many:user_domains;"`
+	Privacy   bool    `json:"privacy" gorm:"default:false"` // true: invisible to the admin, false: the admin can see this domain
 }
 
 type DomainChange struct {
