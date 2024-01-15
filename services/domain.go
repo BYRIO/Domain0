@@ -29,10 +29,13 @@ func DomainGet(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user admin
-	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
+	isAdmin := (c.Locals("role").(models.UserRole) >= models.Admin)
+
+	// check if user has permission
+	hasPermission := checkUserDomainPermission(uId, qId, models.ReadOnly)
 
 	// check if user can access domain
-	if !(flag || checkUserDomainPermission(uId, qId, models.ReadOnly)) {
+	if !(isAdmin || hasPermission) {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -46,6 +49,15 @@ func DomainGet(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(mw.Domain{
 			Status: fiber.StatusNotFound,
 			Errors: "domain not found",
+			Data:   qId,
+		})
+	}
+
+	// admin has no permission to privacy domain
+	if !hasPermission && isAdmin && domain.Privacy == true {
+		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
+			Status: fiber.StatusForbidden,
+			Errors: "permission denied, privacy domain",
 			Data:   qId,
 		})
 	}
@@ -109,6 +121,7 @@ func DomainCreate(c *fiber.Ctx) error {
 			ApiSecret: *domain.ApiSecret,
 			Vendor:    *domain.Vendor,
 			ICPReg:    *domain.ICPReg,
+			Privacy:   *domain.Privacy,
 		}
 		if err := tx.Create(&d).Error; err != nil {
 			return err
@@ -162,8 +175,9 @@ func DomainUpdate(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
-	if !(flag || checkUserDomainPermission(uId, qId, models.Manager)) {
+	isAdmin := (c.Locals("role").(models.UserRole) >= models.Admin)
+	updatePermitted := checkUserDomainPermission(uId, qId, models.Manager)
+	if !(isAdmin || updatePermitted) {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -186,6 +200,13 @@ func DomainUpdate(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(mw.Domain{
 			Status: fiber.StatusNotFound,
 			Errors: "domain not found",
+			Data:   qId,
+		})
+	}
+	if !updatePermitted && isAdmin && d.Privacy == true {
+		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
+			Status: fiber.StatusForbidden,
+			Errors: "permission denied, privacy domain",
 			Data:   qId,
 		})
 	}
@@ -231,8 +252,9 @@ func DomainDelete(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
-	if !(flag || checkUserDomainPermission(uId, qId, models.Owner)) {
+	isAdmin := (c.Locals("role").(models.UserRole) >= models.Admin)
+	deletePermitted := checkUserDomainPermission(uId, qId, models.Owner)
+	if !(isAdmin || deletePermitted) {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied",
@@ -246,6 +268,14 @@ func DomainDelete(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(mw.Domain{
 			Status: fiber.StatusNotFound,
 			Errors: "domain not found",
+			Data:   qId,
+		})
+	}
+
+	if !deletePermitted && isAdmin && domain.Privacy == true {
+		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
+			Status: fiber.StatusForbidden,
+			Errors: "permission denied, privacy domain",
 			Data:   qId,
 		})
 	}
@@ -292,9 +322,12 @@ func DomainList(c *fiber.Ctx) error {
 			})
 		}
 
+		// admin shouldn't see the domain with privacy
+		domainWithNoPrivacy := filterDomainWithNoPrivacy(domains)
+
 		return c.Status(fiber.StatusOK).JSON(mw.Domain{
 			Status: fiber.StatusOK,
-			Data:   domains,
+			Data:   domainWithNoPrivacy,
 		})
 	}
 
@@ -312,4 +345,14 @@ func DomainList(c *fiber.Ctx) error {
 		Status: fiber.StatusOK,
 		Data:   domains,
 	})
+}
+
+func filterDomainWithNoPrivacy(domains []models.Domain) []models.Domain {
+	var noPrivacyDomains []models.Domain
+	for i := range domains {
+		if !domains[i].Privacy {
+			noPrivacyDomains = append(noPrivacyDomains, domains[i])
+		}
+	}
+	return noPrivacyDomains
 }
