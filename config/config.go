@@ -19,6 +19,7 @@ type FeishuConfig struct {
 	AppID       string `yaml:"app_id"`
 	AppSecret   string `yaml:"app_secret"`
 	RedirectURL string `yaml:"redirect_url"`
+	BotUrl      string `yaml:"bot_url"`
 }
 
 type Config struct {
