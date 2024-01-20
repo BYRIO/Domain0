@@ -18,6 +18,10 @@ import (
 
 var emailReg = regexp.MustCompile(`\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`)
 
+const (
+	localsUserName = "user_name"
+)
+
 func jwtSign(user m.User) (string, error) {
 	rawToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":    user.ID,
@@ -37,6 +41,7 @@ func JwtToLocalsWare(c *fiber.Ctx) error {
 		claims := user.Claims.(jwt.MapClaims)
 		c.Locals("sub", uint(claims["sub"].(float64)))
 		c.Locals("role", m.UserRole(claims["role"].(float64)))
+		c.Locals(localsUserName, claims["name"].(string))
 	}
 	return c.Next()
 }

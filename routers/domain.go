@@ -8,6 +8,8 @@ import (
 
 func SetupDomainRouter(r fiber.Router) {
 	domain := r.Group("/domain")
+	SetUpDomainChangeNotifyMiddleware(domain)
+
 	domain.Get("/", services.DomainList)
 	domain.Get("/:id", services.DomainGet)
 	domain.Put("/:id", services.DomainUpdate)
@@ -36,4 +38,8 @@ func SetupDomainChangeRouter(r fiber.Router) {
 	r.Get("/change/myapply", services.DomainChangeListMyApply)
 	r.Get("/change/myapprove", services.DomainChangeListMyApprove)
 	r.Put("/change/:id", services.DomainChangeCheck)
+}
+
+func SetUpDomainChangeNotifyMiddleware(r fiber.Router) {
+	r.Use(services.DomainChangeNotify)
 }
