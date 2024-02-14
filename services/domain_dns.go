@@ -1,11 +1,6 @@
 package services
 
 import (
-	db "domain0/database"
-	"domain0/models"
-	mw "domain0/models/web"
-	"domain0/modules"
-
 	// md "domain0/modules/dns"
 	"encoding/json"
 	"fmt"
@@ -13,6 +8,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
+
+	db "domain0/database"
+	"domain0/models"
+	mw "domain0/models/web"
+	"domain0/modules"
 )
 
 // @Summary List Domain Dns
@@ -37,8 +37,9 @@ func DomainDnsList(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
-	if !(flag || checkUserDomainPermission(uId, qId, models.ReadOnly)) {
+	isAdmin := c.Locals("role").(models.UserRole) >= models.Admin
+	permission := checkUserDomainPermission(uId, qId, models.ReadOnly)
+	if !(isAdmin || permission) {
 		logrus.Info("User: ", uId, " try to access domain: ", qId, " without permission")
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
@@ -53,6 +54,15 @@ func DomainDnsList(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(mw.Domain{
 			Status: fiber.StatusNotFound,
 			Errors: "domain not found",
+			Data:   qId,
+		})
+	}
+
+	// admin have no access to privacy domain
+	if !permission && isAdmin && domain.Privacy {
+		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
+			Status: fiber.StatusForbidden,
+			Errors: "permission denied, privacy domain",
 			Data:   qId,
 		})
 	}
@@ -96,7 +106,7 @@ func DomainDnsDelete(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
+	flag := c.Locals("role").(models.UserRole) >= models.Admin
 	if !(flag || checkUserDomainPermission(uId, qId, models.ReadWrite)) {
 		logrus.Info("User: ", uId, " try to access domain: ", qId, " without permission")
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
@@ -172,7 +182,7 @@ func DomainDnsCreate(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
+	flag := c.Locals("role").(models.UserRole) >= models.Admin
 	if !(flag || checkUserDomainPermission(uId, qId, models.ReadWrite)) {
 		logrus.Info("User: ", uId, " try to access domain: ", qId, " without permission")
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
@@ -284,7 +294,7 @@ func DomainDnsUpdate(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	flag := (c.Locals("role").(models.UserRole) >= models.Admin)
+	flag := c.Locals("role").(models.UserRole) >= models.Admin
 	if !(flag || checkUserDomainPermission(uId, qId, models.ReadWrite)) {
 		logrus.Info("User: ", uId, " try to access domain: ", qId, " without permission")
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
