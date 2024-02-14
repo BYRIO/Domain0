@@ -1,14 +1,14 @@
 package services
 
 import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+
 	db "domain0/database"
 	"domain0/models"
 	mw "domain0/models/web"
 	"domain0/utils"
-
-	"github.com/gofiber/fiber/v2"
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 // @Summary Get domain by id
@@ -29,7 +29,7 @@ func DomainGet(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user admin
-	isAdmin := (c.Locals("role").(models.UserRole) >= models.Admin)
+	isAdmin := c.Locals("role").(models.UserRole) >= models.Admin
 
 	// check if user has permission
 	hasPermission := checkUserDomainPermission(uId, qId, models.ReadOnly)
@@ -54,7 +54,7 @@ func DomainGet(c *fiber.Ctx) error {
 	}
 
 	// admin has no permission to privacy domain
-	if !hasPermission && isAdmin && domain.Privacy == true {
+	if !hasPermission && isAdmin && domain.Privacy {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied, privacy domain",
@@ -175,7 +175,7 @@ func DomainUpdate(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	isAdmin := (c.Locals("role").(models.UserRole) >= models.Admin)
+	isAdmin := c.Locals("role").(models.UserRole) >= models.Admin
 	updatePermitted := checkUserDomainPermission(uId, qId, models.Manager)
 	if !(isAdmin || updatePermitted) {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
@@ -203,7 +203,7 @@ func DomainUpdate(c *fiber.Ctx) error {
 			Data:   qId,
 		})
 	}
-	if !updatePermitted && isAdmin && d.Privacy == true {
+	if !updatePermitted && isAdmin && d.Privacy {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied, privacy domain",
@@ -252,7 +252,7 @@ func DomainDelete(c *fiber.Ctx) error {
 	uId := c.Locals("sub").(uint)
 
 	// check if user role level
-	isAdmin := (c.Locals("role").(models.UserRole) >= models.Admin)
+	isAdmin := c.Locals("role").(models.UserRole) >= models.Admin
 	deletePermitted := checkUserDomainPermission(uId, qId, models.Owner)
 	if !(isAdmin || deletePermitted) {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
@@ -272,7 +272,7 @@ func DomainDelete(c *fiber.Ctx) error {
 		})
 	}
 
-	if !deletePermitted && isAdmin && domain.Privacy == true {
+	if !deletePermitted && isAdmin && domain.Privacy {
 		return c.Status(fiber.StatusForbidden).JSON(mw.Domain{
 			Status: fiber.StatusForbidden,
 			Errors: "permission denied, privacy domain",
