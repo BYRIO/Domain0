@@ -2,13 +2,16 @@ package bot
 
 import (
 	"bytes"
-	"domain0/bot/models"
 	"encoding/json"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/sirupsen/logrus"
+
+	"domain0/bot/models"
+	"domain0/config"
 )
 
 const (
@@ -42,7 +45,6 @@ func init() {
 		Timeout:   time.Second * 10,
 		Transport: netTransport,
 	}
-
 }
 
 func NotifyDomainChange(domainNotifyRecords []DomainModifyRecord) {
@@ -82,7 +84,7 @@ func constructHttpRequest(title string, paragraphs []string) (*http.Request, err
 	if err != nil {
 		return nil, err
 	}
-	url := "https://open.feishu.cn/open-apis/bot/v2/hook/f6a7fef9-dfe1-4311-b874-2a059c73ac28"
+	url := config.CONFIG.Feishu.BotUrl
 	return http.NewRequest(http.MethodPost, url, bytes.NewReader(requestBodyJson))
 }
 
