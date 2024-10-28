@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	c "domain0/config"
 	db "domain0/database"
 	m "domain0/models"
@@ -235,6 +236,12 @@ func Callback(c *fiber.Ctx) error {
 		userObject = m.User{
 			Email:    userInfo.Email,
 			Password: "",
+			StuId: sql.NullString{
+				String: userInfo.EmployeeID,
+				Valid: userInfo.EmployeeID != "",
+			},
+			Name: userInfo.Name,
+
 		}
 		if err := db.DB.Create(&userObject).Error; err != nil {
 			logrus.Errorf("create user error : %v", err)
