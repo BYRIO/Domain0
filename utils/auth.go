@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"strings"
-
 	"domain0/config"
 	"encoding/json"
 	"errors"
@@ -39,9 +37,6 @@ type AuthInfo struct {
 	// Mobile       string `json:"mobile"`
 }
 
-// enterprise email
-var AuthScope = strings.Join([]string{"mail:user_mailbox:readonly"}, " ")
-
 type FeishuGenericResponse[T any] struct {
 	Code    int    `json:"code"`
 	Message string `json:"msg"`
@@ -63,7 +58,6 @@ type FeishuAppAccessTokenInfoResponse struct {
 func FeishuRedirectToCodeURL() string {
 	return "https://open.feishu.cn/open-apis/authen/v1/authorize?app_id=" + config.CONFIG.Feishu.AppID +
 		"&redirect_uri=" + url.QueryEscape(config.CONFIG.Feishu.RedirectURL) +
-		"&scope=" + url.QueryEscape(AuthScope) +
 		"&state=feishu"
 }
 
