@@ -21,7 +21,7 @@ type AccessTokenInfo struct {
 
 type AuthInfo struct {
 	// Sub          string `json:"sub"`
-	Name         string `json:"name"`
+	Name string `json:"name"`
 	// Picture      string `json:"picture"`
 	// OpenID       string `json:"open_id"`
 	// UnionID      string `json:"union_id"`
@@ -32,8 +32,8 @@ type AuthInfo struct {
 	// AvatarMiddle string `json:"avatar_middle"`
 	// AvatarBig    string `json:"avatar_big"`
 	// UserID       string `json:"user_id"`
-	EmployeeID   string `json:"employee_no"`
-	Email string `json:"enterprise_email"`
+	EmployeeID string `json:"employee_no"`
+	Email      string `json:"enterprise_email"`
 	// Mobile       string `json:"mobile"`
 }
 

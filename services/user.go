@@ -238,10 +238,9 @@ func Callback(c *fiber.Ctx) error {
 			Password: "",
 			StuId: sql.NullString{
 				String: userInfo.EmployeeID,
-				Valid: userInfo.EmployeeID != "",
+				Valid:  userInfo.EmployeeID != "",
 			},
 			Name: userInfo.Name,
-
 		}
 		if err := db.DB.Create(&userObject).Error; err != nil {
 			logrus.Errorf("create user error : %v", err)
