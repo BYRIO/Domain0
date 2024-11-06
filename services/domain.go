@@ -104,7 +104,7 @@ func DomainCreate(c *fiber.Ctx) error {
 	}
 
 	// check if query is valid
-	if domain.Name == nil || domain.ApiId == nil || domain.ApiSecret == nil || domain.Vendor == nil || domain.ICPReg == nil {
+	if domain.Name == nil || domain.ApiId == nil || domain.ApiSecret == nil || domain.Vendor == nil || domain.ICPReg == nil || domain.Privacy == nil {
 		return c.Status(fiber.StatusBadRequest).JSON(mw.Domain{
 			Status: fiber.StatusBadRequest,
 			Errors: "invalid request body",
@@ -216,6 +216,7 @@ func DomainUpdate(c *fiber.Ctx) error {
 	d.ApiId = utils.IfThenPtr(domain.ApiId, d.ApiId)
 	d.ApiSecret = utils.IfThenPtr(domain.ApiSecret, d.ApiSecret)
 	d.Vendor = utils.IfThenPtr(domain.Vendor, d.Vendor)
+	d.Privacy = utils.IfThenPtr(domain.Privacy, d.Privacy)
 	// d.ICPReg = utils.IfThenPtr(domain.ICPReg, d.ICPReg)
 	if err := db.DB.Save(&d).Error; err != nil {
 		logrus.Errorf("update domain error: %v", err)

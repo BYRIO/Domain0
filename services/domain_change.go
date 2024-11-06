@@ -220,7 +220,19 @@ func getDomainNameThroughResp(c *fiber.Ctx) string {
 		logrus.Errorf("parse response body err: %v", err)
 		return ""
 	}
-	domainInfoUpdate := domainResp.Data.(mw.DomainInfoUpdate)
+
+	dataBytes, ok := domainResp.Data.(json.RawMessage)
+	if !ok {
+	    logrus.Errorf("Data type assertion to json.RawMessage failed")
+	    return ""
+	}
+
+	var domainInfoUpdate mw.DomainInfoUpdate
+	if err := json.Unmarshal(dataBytes, &domainInfoUpdate); err != nil {
+	    logrus.Errorf("parse Data to DomainInfoUpdate err: %v", err)
+	    return ""
+	}
+
 	return *domainInfoUpdate.Name
 }
 
