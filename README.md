@@ -1,6 +1,8 @@
 # Domain0
 
-Domain0 is a cloud resource management system designed to manage multiple cloud providers.  Especially, it's optimized for Organizations with many resources belonging to many different users.
+[简体中文](docs/zh/README.md)
+
+Domain0 is a cloud resource management system designed to manage multiple cloud providers. Especially, it's optimized for Organizations with many resources belonging to many different users.
 
 ## Functionality
 
@@ -11,6 +13,7 @@ Domain0 provides a DNS management system that allows you to manage DNS records f
 - [x] Aliyun DNS
 - [x] Tencent Cloud DNS
 - [x] Cloudflare DNS
+- [x] Huawei Cloud DNS
 - [ ] ...
 
 welcome for contribution
@@ -34,4 +37,3 @@ You can generate SSL certificates for multiple domains in a single place, and is
 - [ ] Aliyun CDN
 - [ ] Tencent Cloud CDN
 - [ ] Self-hosted
-
