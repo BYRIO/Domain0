@@ -190,6 +190,16 @@ func FeishuAuthRedirect(c *fiber.Ctx) error {
 	return c.Redirect(utils.FeishuRedirectToCodeURL())
 }
 
+// @Summary OIDC auth redirect
+// @description OIDC auth redirect api
+// @Produce json
+// @Success 302
+// @Failure 400 {object} wm.User{data=int}
+// @Router /api/v1/user/oidc [get]
+func OIDCAuthRedirect(c *fiber.Ctx) error {
+	return c.Redirect(utils.OIDCRedirectURL())
+}
+
 // @Summary oauth callback
 // @description oauth callback api
 // @description user can login with feishu for now
@@ -217,6 +227,17 @@ func Callback(c *fiber.Ctx) error {
 	if state == "feishu" {
 		var err error
 		userInfo, err = utils.FeishuGetUserInfo(code)
+		if err != nil || userInfo.Email == "" {
+			logrus.Errorf("feishu get user info error : %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(wm.User{
+				Status: fiber.StatusInternalServerError,
+				Errors: "internal server error",
+				Data:   0,
+			})
+		}
+	} else if state == "oidc" {
+		var err error
+		userInfo, err = utils.OIDCGetUserInfo(code)
 		if err != nil || userInfo.Email == "" {
 			logrus.Errorf("feishu get user info error : %v", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(wm.User{

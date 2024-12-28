@@ -12,3 +12,7 @@ feishu:
 	app_id:       ""
 	app_secret:   ""
 	redirect_url: ""
+oidc:
+  client_id:  ""
+  app_secret: ""
+  redirect_url: ""
