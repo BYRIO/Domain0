@@ -12,10 +12,10 @@ import (
 )
 
 func oidcTokenURL() string {
-	return "https://youth.bupt.edu.cn/idp/oidc/token"
+	return config.CONFIG.OIDC.BaseUrl + "/idp/oidc/token"
 }
 func OIDCUserInfoURL() string {
-	return "https://youth.bupt.edu.cn/idp/oidc/me"
+	return config.CONFIG.OIDC.BaseUrl + "/idp/oidc/me"
 }
 
 type OIDCTokenRes struct {
@@ -46,7 +46,7 @@ type Details struct {
 
 func OIDCRedirectURL() string {
 	var buf bytes.Buffer
-	buf.WriteString("https://youth.bupt.edu.cn/idp/oidc/auth")
+	buf.WriteString(config.CONFIG.OIDC.BaseUrl + "/idp/oidc/auth")
 	v := url.Values{
 		"client_id":     {config.CONFIG.OIDC.ClientId},
 		"scope":         {"openid email identities"},

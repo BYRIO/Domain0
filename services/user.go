@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"domain0/config"
 	c "domain0/config"
 	db "domain0/database"
 	m "domain0/models"
@@ -180,24 +181,64 @@ func Register(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary feishu auth enable
+// description return true if feishu auth enabled in config.
+// Produce json
+// @Success 200
+// @Router /api/v1/user/feishu/enable [get]
+func FeishuAuthEnable(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(
+		struct {
+			Status int  `json:"status"`
+			Data   bool `json:"data"`
+		}{
+			Status: fiber.StatusOK,
+			Data:   config.CONFIG.Feishu.Enable,
+		},
+	)
+}
+
 // @Summary feishu auth redirect
 // @description feishu auth redirect api
 // @Produce json
 // @Success 302
-// @Failure 400 {object} wm.User{data=int}
+// @Failure 400 {error}
 // @Router /api/v1/user/feishu [get]
 func FeishuAuthRedirect(c *fiber.Ctx) error {
-	return c.Redirect(utils.FeishuRedirectToCodeURL())
+	if config.CONFIG.Feishu.Enable {
+		return c.Redirect(utils.FeishuRedirectToCodeURL())
+	}
+	return c.Redirect("/user/login")
+}
+
+// @Summary OIDC auth enable
+// description return true if OIDC auth enabled in config.
+// Produce json
+// @Success 200
+// @Router /api/v1/user/oidc/enable [get]
+func OIDCAuthEnable(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(
+		struct {
+			Status int  `json:"status"`
+			Data   bool `json:"data"`
+		}{
+			Status: fiber.StatusOK,
+			Data:   config.CONFIG.OIDC.Enable,
+		},
+	)
 }
 
 // @Summary OIDC auth redirect
 // @description OIDC auth redirect api
 // @Produce json
 // @Success 302
-// @Failure 400 {object} wm.User{data=int}
+// @Failure 400 {error}
 // @Router /api/v1/user/oidc [get]
 func OIDCAuthRedirect(c *fiber.Ctx) error {
-	return c.Redirect(utils.OIDCRedirectURL())
+	if config.CONFIG.OIDC.Enable {
+		return c.Redirect(utils.OIDCRedirectURL())
+	}
+	return c.Redirect("/user/login")
 }
 
 // @Summary oauth callback

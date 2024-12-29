@@ -16,12 +16,15 @@ type DatabaseConfig struct {
 }
 
 type FeishuConfig struct {
+	Enable      bool   `yaml:"enable"`
 	AppID       string `yaml:"app_id"`
 	AppSecret   string `yaml:"app_secret"`
 	RedirectURL string `yaml:"redirect_url"`
 	BotUrl      string `yaml:"bot_url"`
 }
 type OIDCConfig struct {
+	Enable      bool   `yaml:"enable"`
+	BaseUrl     string `yaml:"base_url"`
 	ClientId    string `yaml:"client_id"`
 	AppSecret   string `yaml:"app_secret"`
 	RedirectUrl string `yaml:"redirect_url"`
