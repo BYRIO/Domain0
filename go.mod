@@ -4,8 +4,6 @@ go 1.20
 
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/PaesslerAG/gval v1.0.0 // indirect
-	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/PuerkitoBio/purell v1.2.0 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.247 // indirect
@@ -28,6 +26,7 @@ require (
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.63 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/jmespath-community/go-jmespath v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -60,6 +59,7 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.mongodb.org/mongo-driver v1.12.0 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
+	golang.org/x/exp v0.0.0-20230314191032-db074128a8ec // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect

@@ -7,10 +7,9 @@ import (
 	"domain0/models"
 	"encoding/json"
 	"errors"
-	"github.com/PaesslerAG/jsonpath"
 	"github.com/google/uuid"
+	"github.com/jmespath-community/go-jmespath"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -111,7 +110,7 @@ func OIDCGetUserInfo(code string) (AuthInfo, error) {
 		return AuthInfo{}, errors.New("oidc auth failed")
 	}
 
-	res := interface{}(nil)
+	var res any
 	err = json.Unmarshal(body, &res)
 	if err != nil {
 		logrus.Error(err)
@@ -122,7 +121,7 @@ func OIDCGetUserInfo(code string) (AuthInfo, error) {
 	var aggregateErr error
 
 	// Extract Name
-	name, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Name, res)
+	name, err := jmespath.Search(config.CONFIG.OIDC.InfoPath.Name, res)
 	if err != nil {
 		logrus.Error(err)
 		aggregateErr = errors.Join(aggregateErr, err)
@@ -131,7 +130,7 @@ func OIDCGetUserInfo(code string) (AuthInfo, error) {
 	}
 
 	// Extract ID
-	id, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Id, res)
+	id, err := jmespath.Search(config.CONFIG.OIDC.InfoPath.Id, res)
 	if err != nil {
 		logrus.Error(err)
 		aggregateErr = errors.Join(aggregateErr, err)
@@ -140,7 +139,7 @@ func OIDCGetUserInfo(code string) (AuthInfo, error) {
 	}
 
 	// Extract Email
-	email, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Email, res)
+	email, err := jmespath.Search(config.CONFIG.OIDC.InfoPath.Email, res)
 	if err != nil {
 		logrus.Error(err)
 		aggregateErr = errors.Join(aggregateErr, err)
@@ -149,17 +148,12 @@ func OIDCGetUserInfo(code string) (AuthInfo, error) {
 	}
 
 	// Extract Error
-	errorField, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Error, res)
-	if err == nil && errorField != "" { // response contains an error field
-		if errorStr, ok := errorField.(string); ok {
-			aggregateErr = errors.Join(aggregateErr, errors.New(errorStr))
-		} else {
-			logrus.Error(errorStr)
-			aggregateErr = errors.Join(aggregateErr, errors.New(errorStr))
-		}
-	} else if err != nil && !strings.HasPrefix(err.Error(), "unknown key") {
-		// error message might not exist, which means reeronse OK
+	errorField, err := jmespath.Search(config.CONFIG.OIDC.InfoPath.Error, res)
+	if err != nil {
+		logrus.Error(err)
 		aggregateErr = errors.Join(aggregateErr, err)
+	} else if errorField != nil {
+		aggregateErr = errors.Join(aggregateErr, errors.New(errorField.(string)))
 	}
 
 	// Return all errors if any occurred

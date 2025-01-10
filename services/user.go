@@ -193,10 +193,10 @@ func FeishuAuthEnable(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(
 		struct {
 			Status int  `json:"status"`
-			Data   bool `json:"data"`
+			Enable bool `json:"enable"`
 		}{
 			Status: fiber.StatusOK,
-			Data:   config.CONFIG.Feishu.Enable,
+			Enable: config.CONFIG.Feishu.Enable,
 		},
 	)
 }
