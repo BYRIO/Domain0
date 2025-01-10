@@ -15,6 +15,20 @@ feishu:
   redirect_url: ""
 oidc:
   enable: false
-  client_id:  ""
+  # Used by /api/v1/user/oidc/enable
+  logo_url: ""
+  # Used by /api/v1/user/oidc/enable
+  name: ""
+  auth_url: ""
+  token_url: ""
+  user_info_url: ""
+  client_id: ""
   app_secret: ""
   redirect_url: ""
+  scope: ""
+  # JSONPath for OIDCInfo
+  info_path:
+      name: ""
+      id: ""
+      email: ""
+      error: ""
