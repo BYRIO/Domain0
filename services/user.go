@@ -8,8 +8,11 @@ import (
 	m "domain0/models"
 	wm "domain0/models/web"
 	"domain0/utils"
+	"errors"
+	"gorm.io/gorm"
 	"math/rand"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -219,11 +222,15 @@ func FeishuAuthRedirect(c *fiber.Ctx) error {
 func OIDCAuthEnable(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(
 		struct {
-			Status int  `json:"status"`
-			Data   bool `json:"data"`
+			Status  int    `json:"status"`
+			Enable  bool   `json:"enable"`
+			Name    string `json:"name"`
+			LogoURL string `json:"logo_url"`
 		}{
-			Status: fiber.StatusOK,
-			Data:   config.CONFIG.OIDC.Enable,
+			Status:  fiber.StatusOK,
+			Enable:  config.CONFIG.OIDC.Enable,
+			Name:    config.CONFIG.OIDC.Name,
+			LogoURL: config.CONFIG.OIDC.LogoURL,
 		},
 	)
 }
@@ -262,10 +269,26 @@ func Callback(c *fiber.Ctx) error {
 			Data:   0,
 		})
 	}
-
+	result := db.DB.Where("state=?", state).First(&m.SSOState{})
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusBadRequest).JSON(wm.User{
+				Status: fiber.StatusBadRequest,
+				Errors: "state is invalid or expired",
+				Data:   0,
+			})
+		}
+		logrus.Error(result.Error)
+		return c.Status(fiber.StatusInternalServerError).JSON(wm.User{
+			Status: fiber.StatusInternalServerError,
+			Errors: "internal server error",
+			Data:   0,
+		})
+	}
+	db.DB.Where("state=?", state).Delete(&m.SSOState{})
 	// get userInfo
 	var userInfo utils.AuthInfo
-	if state == "feishu" {
+	if strings.HasPrefix(state, "feishu") {
 		var err error
 		userInfo, err = utils.FeishuGetUserInfo(code)
 		if err != nil || userInfo.Email == "" {
@@ -276,7 +299,7 @@ func Callback(c *fiber.Ctx) error {
 				Data:   0,
 			})
 		}
-	} else if state == "oidc" {
+	} else if strings.HasPrefix(state, "oidc") {
 		var err error
 		userInfo, err = utils.OIDCGetUserInfo(code)
 		if err != nil || userInfo.Email == "" {
@@ -288,10 +311,10 @@ func Callback(c *fiber.Ctx) error {
 			})
 		}
 	} else {
-		logrus.Errorf("state is not valid")
+		logrus.Errorf("state " + state + " is invalid")
 		return c.Status(fiber.StatusBadRequest).JSON(wm.User{
 			Status: fiber.StatusBadRequest,
-			Errors: "state is not valid",
+			Errors: "state is invalid",
 			Data:   0,
 		})
 	}

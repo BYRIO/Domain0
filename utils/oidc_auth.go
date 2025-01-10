@@ -3,55 +3,46 @@ package utils
 import (
 	"bytes"
 	"domain0/config"
+	"domain0/database"
+	"domain0/models"
 	"encoding/json"
 	"errors"
+	"github.com/PaesslerAG/jsonpath"
+	"github.com/google/uuid"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 )
 
 func oidcTokenURL() string {
-	return config.CONFIG.OIDC.BaseUrl + "/idp/oidc/token"
+	return config.CONFIG.OIDC.TokenURL
 }
 func OIDCUserInfoURL() string {
-	return config.CONFIG.OIDC.BaseUrl + "/idp/oidc/me"
+	return config.CONFIG.OIDC.UserInfoURL
 }
 
 type OIDCTokenRes struct {
 	AccessToken string `json:"access_token"`
 	Error       string `json:"error"`
-	Message     string `json:"message"`
-}
-type OIDCInfoRes struct {
-	Email            string      `json:"email"`
-	Identities       *Identities `json:"identities"`
-	Error            string      `json:"error"`
-	ErrorDescription string      `json:"error_description"`
-}
-
-type Identities struct {
-	YourCAS *YourCAS `json:"yourcas"`
-}
-
-type YourCAS struct {
-	UserID  string   `json:"userId"` // studentID
-	Details *Details `json:"details"`
-}
-
-type Details struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
 }
 
 func OIDCRedirectURL() string {
 	var buf bytes.Buffer
-	buf.WriteString(config.CONFIG.OIDC.BaseUrl + "/idp/oidc/auth")
+	buf.WriteString(config.CONFIG.OIDC.AuthURL)
+	state := "oidc" + uuid.New().String()
+	ssoState := models.SSOState{
+		State:       state,
+		ExpiredTime: time.Now().Add(60 * time.Second),
+	}
+	database.DB.Create(&ssoState)
 	v := url.Values{
 		"client_id":     {config.CONFIG.OIDC.ClientId},
-		"scope":         {"openid email identities"},
+		"scope":         {config.CONFIG.OIDC.Scope},
 		"response_type": {"code"},
-		"state":         {"oidc"},
+		"state":         {state},
 		"redirect_uri":  {config.CONFIG.OIDC.RedirectUrl},
 	}
 	buf.WriteByte('?')
@@ -96,7 +87,7 @@ func OIDCGetUserInfo(code string) (AuthInfo, error) {
 		return AuthInfo{}, err
 	}
 	if tokenRes.Error != "" {
-		logrus.Error("fetch app token failed : ", tokenRes.Message)
+		logrus.Error("fetch app token failed : ", tokenRes.Error)
 		return AuthInfo{}, errors.New("oidc auth failed")
 	}
 
@@ -120,19 +111,62 @@ func OIDCGetUserInfo(code string) (AuthInfo, error) {
 		return AuthInfo{}, errors.New("oidc auth failed")
 	}
 
-	var infoRes OIDCInfoRes
-	err = json.Unmarshal(body, &infoRes)
+	res := interface{}(nil)
+	err = json.Unmarshal(body, &res)
 	if err != nil {
 		logrus.Error(err)
 		return AuthInfo{}, err
 	}
-	if infoRes.Error != "" {
-		logrus.Error("fetch user info failed : ", infoRes.ErrorDescription)
-		return AuthInfo{}, errors.New("oidc auth failed")
+
+	var authInfo AuthInfo
+	var aggregateErr error
+
+	// Extract Name
+	name, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Name, res)
+	if err != nil {
+		logrus.Error(err)
+		aggregateErr = errors.Join(aggregateErr, err)
+	} else if nameStr, ok := name.(string); ok {
+		authInfo.Name = nameStr
 	}
-	return AuthInfo{
-		Name:       infoRes.Identities.YourCAS.Details.Name,
-		EmployeeID: infoRes.Identities.YourCAS.UserID,
-		Email:      infoRes.Email,
-	}, nil
+
+	// Extract ID
+	id, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Id, res)
+	if err != nil {
+		logrus.Error(err)
+		aggregateErr = errors.Join(aggregateErr, err)
+	} else if idStr, ok := id.(string); ok {
+		authInfo.EmployeeID = idStr
+	}
+
+	// Extract Email
+	email, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Email, res)
+	if err != nil {
+		logrus.Error(err)
+		aggregateErr = errors.Join(aggregateErr, err)
+	} else if emailStr, ok := email.(string); ok {
+		authInfo.Email = emailStr
+	}
+
+	// Extract Error
+	errorField, err := jsonpath.Get(config.CONFIG.OIDC.InfoPath.Error, res)
+	if err == nil && errorField != "" { // response contains an error field
+		if errorStr, ok := errorField.(string); ok {
+			aggregateErr = errors.Join(aggregateErr, errors.New(errorStr))
+		} else {
+			logrus.Error(errorStr)
+			aggregateErr = errors.Join(aggregateErr, errors.New(errorStr))
+		}
+	} else if err != nil && !strings.HasPrefix(err.Error(), "unknown key") {
+		// error message might not exist, which means reeronse OK
+		aggregateErr = errors.Join(aggregateErr, err)
+	}
+
+	// Return all errors if any occurred
+	if aggregateErr != nil {
+		logrus.Error(aggregateErr)
+		return AuthInfo{}, aggregateErr
+	}
+	// Return the successfully extracted AuthInfo
+	return authInfo, nil
 }

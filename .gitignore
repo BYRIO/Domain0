@@ -1,3 +1,5 @@
 domain0
 config.yaml
 db.sqlite3
+.idea
+static
