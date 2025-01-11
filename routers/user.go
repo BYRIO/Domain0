@@ -16,7 +16,10 @@ func SetupUserRouterPub(r fiber.Router) {
 	user := r.Group("/user")
 	user.Post("/login", services.Login)
 	user.Post("/register", services.Register)
+	user.Get("/feishu/enable", services.FeishuAuthEnable)
 	user.Get("/feishu", services.FeishuAuthRedirect)
+	user.Get("/oidc/enable", services.OIDCAuthEnable)
+	user.Get("/oidc", services.OIDCAuthRedirect)
 	user.Get("/callback", services.Callback)
 }
 

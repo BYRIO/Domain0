@@ -2,9 +2,13 @@ package utils
 
 import (
 	"domain0/config"
+	"domain0/database"
+	"domain0/models"
 	"encoding/json"
 	"errors"
+	"github.com/google/uuid"
 	"net/url"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
@@ -56,9 +60,15 @@ type FeishuAppAccessTokenInfoResponse struct {
 }
 
 func FeishuRedirectToCodeURL() string {
+	state := "feishu" + uuid.New().String()
+	ssoState := models.SSOState{
+		State:       state,
+		ExpiredTime: time.Now().Add(60 * time.Second),
+	}
+	database.DB.Create(&ssoState)
 	return "https://open.feishu.cn/open-apis/authen/v1/authorize?app_id=" + config.CONFIG.Feishu.AppID +
 		"&redirect_uri=" + url.QueryEscape(config.CONFIG.Feishu.RedirectURL) +
-		"&state=feishu"
+		"&state=" + state
 }
 
 func feishuAppAccessTokenURL() string {

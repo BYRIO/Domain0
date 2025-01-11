@@ -2,13 +2,17 @@ package services
 
 import (
 	"database/sql"
+	"domain0/config"
 	c "domain0/config"
 	db "domain0/database"
 	m "domain0/models"
 	wm "domain0/models/web"
 	"domain0/utils"
+	"errors"
+	"gorm.io/gorm"
 	"math/rand"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -180,14 +184,68 @@ func Register(c *fiber.Ctx) error {
 	})
 }
 
+// @Summary feishu auth enable
+// description return true if feishu auth enabled in config.
+// Produce json
+// @Success 200
+// @Router /api/v1/user/feishu/enable [get]
+func FeishuAuthEnable(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(
+		struct {
+			Status int  `json:"status"`
+			Enable bool `json:"enable"`
+		}{
+			Status: fiber.StatusOK,
+			Enable: config.CONFIG.Feishu.Enable,
+		},
+	)
+}
+
 // @Summary feishu auth redirect
 // @description feishu auth redirect api
 // @Produce json
 // @Success 302
-// @Failure 400 {object} wm.User{data=int}
+// @Failure 400 {error}
 // @Router /api/v1/user/feishu [get]
 func FeishuAuthRedirect(c *fiber.Ctx) error {
-	return c.Redirect(utils.FeishuRedirectToCodeURL())
+	if config.CONFIG.Feishu.Enable {
+		return c.Redirect(utils.FeishuRedirectToCodeURL())
+	}
+	return c.Redirect("/user/login")
+}
+
+// @Summary OIDC auth enable
+// description return true if OIDC auth enabled in config.
+// Produce json
+// @Success 200
+// @Router /api/v1/user/oidc/enable [get]
+func OIDCAuthEnable(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusOK).JSON(
+		struct {
+			Status  int    `json:"status"`
+			Enable  bool   `json:"enable"`
+			Name    string `json:"name"`
+			LogoURL string `json:"logo_url"`
+		}{
+			Status:  fiber.StatusOK,
+			Enable:  config.CONFIG.OIDC.Enable,
+			Name:    config.CONFIG.OIDC.Name,
+			LogoURL: config.CONFIG.OIDC.LogoURL,
+		},
+	)
+}
+
+// @Summary OIDC auth redirect
+// @description OIDC auth redirect api
+// @Produce json
+// @Success 302
+// @Failure 400 {error}
+// @Router /api/v1/user/oidc [get]
+func OIDCAuthRedirect(c *fiber.Ctx) error {
+	if config.CONFIG.OIDC.Enable {
+		return c.Redirect(utils.OIDCRedirectURL())
+	}
+	return c.Redirect("/user/login")
 }
 
 // @Summary oauth callback
@@ -211,10 +269,26 @@ func Callback(c *fiber.Ctx) error {
 			Data:   0,
 		})
 	}
-
+	result := db.DB.Where("state=?", state).First(&m.SSOState{})
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusBadRequest).JSON(wm.User{
+				Status: fiber.StatusBadRequest,
+				Errors: "state is invalid or expired",
+				Data:   0,
+			})
+		}
+		logrus.Error(result.Error)
+		return c.Status(fiber.StatusInternalServerError).JSON(wm.User{
+			Status: fiber.StatusInternalServerError,
+			Errors: "internal server error",
+			Data:   0,
+		})
+	}
+	db.DB.Where("state=?", state).Delete(&m.SSOState{})
 	// get userInfo
 	var userInfo utils.AuthInfo
-	if state == "feishu" {
+	if strings.HasPrefix(state, "feishu") {
 		var err error
 		userInfo, err = utils.FeishuGetUserInfo(code)
 		if err != nil || userInfo.Email == "" {
@@ -225,11 +299,22 @@ func Callback(c *fiber.Ctx) error {
 				Data:   0,
 			})
 		}
+	} else if strings.HasPrefix(state, "oidc") {
+		var err error
+		userInfo, err = utils.OIDCGetUserInfo(code)
+		if err != nil || userInfo.Email == "" {
+			logrus.Errorf("feishu get user info error : %v", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(wm.User{
+				Status: fiber.StatusInternalServerError,
+				Errors: "internal server error",
+				Data:   0,
+			})
+		}
 	} else {
-		logrus.Errorf("state is not valid")
+		logrus.Errorf("state " + state + " is invalid")
 		return c.Status(fiber.StatusBadRequest).JSON(wm.User{
 			Status: fiber.StatusBadRequest,
-			Errors: "state is not valid",
+			Errors: "state is invalid",
 			Data:   0,
 		})
 	}

@@ -16,18 +16,38 @@ type DatabaseConfig struct {
 }
 
 type FeishuConfig struct {
+	Enable      bool   `yaml:"enable"`
 	AppID       string `yaml:"app_id"`
 	AppSecret   string `yaml:"app_secret"`
 	RedirectURL string `yaml:"redirect_url"`
 	BotUrl      string `yaml:"bot_url"`
 }
-
+type OIDCConfig struct {
+	LogoURL     string       `yaml:"logo_url"`
+	Name        string       `yaml:"name"`
+	Enable      bool         `yaml:"enable"`
+	AuthURL     string       `yaml:"auth_url"`
+	TokenURL    string       `yaml:"token_url"`
+	UserInfoURL string       `yaml:"user_info_url"`
+	ClientId    string       `yaml:"client_id"`
+	AppSecret   string       `yaml:"app_secret"`
+	RedirectUrl string       `yaml:"redirect_url"`
+	Scope       string       `yaml:"scope"`
+	InfoPath    OIDCInfoPath `yaml:"info_path"`
+}
+type OIDCInfoPath struct {
+	Name  string `yaml:"name"`
+	Id    string `yaml:"id"`
+	Email string `yaml:"email"`
+	Error string `yaml:"error"`
+}
 type Config struct {
 	BindAddr string         `yaml:"bind_addr"`
 	Database DatabaseConfig `yaml:"database"`
 	LogLevel int            `yaml:"log_level"` // 0: debug, 1: info, 2: warn, 3: error
 	JwtKey   string         `yaml:"jwt_key"`
 	Feishu   FeishuConfig   `yaml:"feishu"`
+	OIDC     OIDCConfig     `yaml:"oidc"`
 }
 
 var CONFIG = Config{
