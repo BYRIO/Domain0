@@ -33,6 +33,11 @@ func Init() error {
 		if err != nil {
 			return err
 		}
+	case "postgresql":
+		DB, err = postgresqlInit(c.CONFIG)
+		if err != nil {
+			return err
+		}
 	default:
 		logrus.Errorf("database type not supported")
 		return gorm.ErrInvalidDB
