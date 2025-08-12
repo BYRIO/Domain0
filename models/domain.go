@@ -3,8 +3,6 @@ package models
 import (
 	"errors"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type DomainAction int
@@ -12,7 +10,9 @@ type ActionStatus int
 type UserDomainRole int
 
 type Domain struct {
-	gorm.Model
+	ID        uint `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	Name      string  `gorm:"uniqueIndex"`
 	ApiId     string  `json:"-"`
 	ApiSecret string  `json:"-"`
@@ -23,7 +23,9 @@ type Domain struct {
 }
 
 type DomainChange struct {
-	gorm.Model
+	ID           uint `gorm:"primary_key"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 	DomainId     uint
 	Domain       Domain
 	UserId       uint

@@ -333,7 +333,7 @@ func DomainList(c *fiber.Ctx) error {
 	}
 
 	// get domains which user can access with userDomain join
-	if err := db.DB.Model(&models.User{Model: gorm.Model{ID: uId}}).Association("Domains").Find(&domains); err != nil {
+	if err := db.DB.Model(&models.User{ID: uId}).Association("Domains").Find(&domains); err != nil {
 		logrus.Errorf("get user domains error: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(mw.Domain{
 			Status: fiber.StatusInternalServerError,
