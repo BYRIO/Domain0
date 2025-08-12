@@ -2,20 +2,21 @@ package models
 
 import (
 	"database/sql"
-
-	"gorm.io/gorm"
+	"time"
 )
 
 type UserRole int
 
 type User struct {
-	gorm.Model
-	Email    string         `gorm:"uniqueIndex"`
-	Password string         `gorm:"not null" json:"-"`
-	StuId    sql.NullString `gorm:"uniqueIndex"`
-	Name     string
-	Role     UserRole  `gorm:"default:0"`
-	Domains  []*Domain `gorm:"many2many:user_domains;"`
+	ID        uint `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Email     string         `gorm:"uniqueIndex"`
+	Password  string         `gorm:"not null" json:"-"`
+	StuId     sql.NullString `gorm:"uniqueIndex"`
+	Name      string
+	Role      UserRole  `gorm:"default:0"`
+	Domains   []*Domain `gorm:"many2many:user_domains;"`
 }
 
 func (u *User) GetStuId() *string {
