@@ -11,16 +11,16 @@ import (
 )
 
 type CloudflareDNS struct {
-	Id          string      `json:"id"`
-	Type        string      `json:"type"`
-	Name        string      `json:"name"`
-	Content     string      `json:"content"`
-	ProxyStatus bool        `json:"proxied"`
-	TTL         int         `json:"ttl"`
-	Commnet     string      `json:"comment"`
-	Data        interface{} `json:"data"`
-	Priority    uint16      `json:"priority"`
-	Domain      models.Domain  `json:"-"`
+	Id          string        `json:"id"`
+	Type        string        `json:"type"`
+	Name        string        `json:"name"`
+	Content     string        `json:"content"`
+	ProxyStatus bool          `json:"proxied"`
+	TTL         int           `json:"ttl"`
+	Commnet     string        `json:"comment"`
+	Data        interface{}   `json:"data"`
+	Priority    uint16        `json:"priority"`
+	Domain      models.Domain `json:"-"`
 }
 
 type CloudflareDNSList struct {
@@ -38,8 +38,8 @@ func (c *CloudflareDNS) Create() error {
 	}
 
 	// logging info
-	logrus.Info("Create DNS record: ", c)
-	logrus.Debug("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
+	logrus.Infof("Create DNS record: %v", c)
+	logrus.Debugf("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
 
 	// create dns record
 	api, err := cf.NewWithAPIToken(apiToken)
@@ -98,8 +98,8 @@ func (c *CloudflareDNS) Get(id string) error {
 	c.Priority = lutils.IfThenPtr(res.Priority, uint16(0))
 
 	// logging info
-	logrus.Info("Get DNS record: ", c)
-	logrus.Debug("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
+	logrus.Infof("Get DNS record: %v", c)
+	logrus.Debugf("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
 
 	return nil
 }
@@ -112,8 +112,8 @@ func (c *CloudflareDNS) Delete() error {
 	}
 
 	// logging info
-	logrus.Info("Delete DNS record: ", c)
-	logrus.Debug("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
+	logrus.Infof("Delete DNS record: %v", c)
+	logrus.Debugf("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
 
 	// delete dns record
 	api, err := cf.NewWithAPIToken(apiToken)
@@ -135,8 +135,8 @@ func (c *CloudflareDNS) Update() error {
 	}
 
 	// logging info
-	logrus.Info("Update DNS record: ", c)
-	logrus.Debug("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
+	logrus.Infof("Update DNS record: %v", c)
+	logrus.Debugf("Auth with ZoneId: %s, ApiToken: %s", zoneId, apiToken)
 
 	// update dns record
 	api, err := cf.NewWithAPIToken(apiToken)
@@ -186,8 +186,8 @@ func (c *CloudflareDNSList) GetDNSList(d *models.Domain) error {
 	}
 
 	// logging info
-	logrus.Info("Get DNS records of domain: %s", d.Name)
-	logrus.Debug("Details: %s", d)
+	logrus.Infof("Get DNS records of domain: %s", d.Name)
+	logrus.Debugf("Details: %v", d)
 
 	// get dns record list
 	api, err := cf.NewWithAPIToken(apiToken)

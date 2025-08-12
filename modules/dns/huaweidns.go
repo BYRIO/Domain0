@@ -246,7 +246,7 @@ func (h *HuaweiDNS) getClient() (*dns.DnsClient, error) {
 	}
 
 	// logging info
-	logrus.Debug("Auth with Secret_Id: %s, Secret_Key: %s", ak, sk)
+	logrus.Debugf("Auth with Secret_Id: %s, Secret_Key: %s", ak, sk)
 
 	// auth
 	auth := basic.NewCredentialsBuilder().
@@ -328,7 +328,7 @@ func (h *HuaweiDNS) getRecord() string {
 }
 
 func (h *HuaweiDNS) Create() error {
-	logrus.Info("Create DNS record: ", h)
+	logrus.Infof("Create DNS record: %v", h)
 	// create dns record
 	name := h.formatName()
 	ttlRecord := int32(h.TTL)
@@ -397,7 +397,7 @@ func (h *HuaweiDNS) Create() error {
 func (h *HuaweiDNS) Get(id string) error {
 	// set id
 	h.Id = id
-	logrus.Info("Get DNS record: ", h)
+	logrus.Infof("Get DNS record: %v", h)
 
 	_, recordHash, err := decodeId(h.Id)
 	if err != nil {
@@ -426,7 +426,7 @@ func (h *HuaweiDNS) Get(id string) error {
 }
 
 func (h *HuaweiDNS) Delete() error {
-	logrus.Info("Delete DNS record: ", h)
+	logrus.Infof("Delete DNS record: %v", h)
 	recordIndex, err := h.getRecordIndex()
 	if err != nil {
 		return err
@@ -469,7 +469,7 @@ func (h *HuaweiDNS) Delete() error {
 }
 
 func (h *HuaweiDNS) Update() error {
-	logrus.Info("Update DNS record: ", h)
+	logrus.Infof("Update DNS record: %v", h)
 	name := h.formatName()
 	recordIndex, err := h.getRecordIndex()
 	if err != nil {
@@ -557,8 +557,8 @@ func (h *HuaweiDNSList) GetDNSList(d *models.Domain) error {
 	}
 
 	// logging info
-	logrus.Info("Get DNS record list: ", d)
-	logrus.Debug("Auth with Secret_Id: %s, Secret_Key: %s", ak, sk)
+	logrus.Infof("Get DNS record list: %v", d)
+	logrus.Debugf("Auth with Secret_Id: %s, Secret_Key: %s", ak, sk)
 
 	// auth
 	auth := basic.NewCredentialsBuilder().

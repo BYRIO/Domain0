@@ -24,8 +24,8 @@ type AliDNS struct {
 	TTL     int64  `json:"ttl"`
 	Commnet string `json:"comment"`
 	// Data     string `json:"data"`
-	Priority int64        `json:"priority"`
-	Custom   AliDNSCustom `json:"custom"`
+	Priority int64         `json:"priority"`
+	Custom   AliDNSCustom  `json:"custom"`
 	Domain   models.Domain `json:"-"`
 }
 
@@ -44,8 +44,8 @@ func (a *AliDNS) Create() error {
 	}
 
 	// logging info
-	logrus.Info("Create DNS record: ", a)
-	logrus.Debug("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
+	logrus.Infof("Create DNS record: %v", a)
+	logrus.Debugf("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
 
 	// create dns record
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
@@ -100,8 +100,8 @@ func (a *AliDNS) Get(id string) error {
 	a.Priority = res.Priority
 
 	// logging info
-	logrus.Info("Get DNS record: ", a)
-	logrus.Debug("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
+	logrus.Infof("Get DNS record: %v", a)
+	logrus.Debugf("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
 
 	return nil
 }
@@ -114,8 +114,8 @@ func (a *AliDNS) Delete() error {
 	}
 
 	// logging info
-	logrus.Info("Delete DNS record: ", a)
-	logrus.Debug("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
+	logrus.Infof("Delete DNS record: %v", a)
+	logrus.Debugf("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
 
 	// delete dns record
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
@@ -141,8 +141,8 @@ func (a *AliDNS) Update() error {
 	}
 
 	// logging info
-	logrus.Info("Update DNS record: ", a)
-	logrus.Debug("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
+	logrus.Infof("Update DNS record: %v", a)
+	logrus.Debugf("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
 
 	// update dns record
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
@@ -177,7 +177,7 @@ func (a *AliDNS) Update() error {
 		reamarkRequest.Scheme = "https"
 		reamarkRequest.RecordId = a.Id
 		reamarkRequest.Remark = a.Commnet
-		client.UpdateDomainRecordRemark(reamarkRequest) // ignore error
+		_, _ = client.UpdateDomainRecordRemark(reamarkRequest) // ignore error
 	}
 
 	return nil
@@ -208,7 +208,7 @@ func (c *AliDNSList) GetDNSList(d *models.Domain) error {
 	}
 
 	// logging info
-	logrus.Debug("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
+	logrus.Debugf("Auth with AccessKeyId: %s, AccessKeySecret: %s", accessKeyId, accessKeySecret)
 
 	// get dns list
 	client, err := alidns.NewClientWithAccessKey("cn-hangzhou", accessKeyId, accessKeySecret)
