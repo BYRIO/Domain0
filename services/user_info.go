@@ -114,7 +114,7 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 			})
 		} // only admin can update name and stuid, in the future, we may allow user to update name and stuid with check
 		if updateInfo.Role != nil {
-			logrus.Warnf("user %s try to update role of user %s", uId, qId)
+			logrus.Warnf("user %d try to update role of user %s", uId, qId)
 			return c.Status(fiber.StatusForbidden).JSON(mw.User{
 				Status: fiber.StatusForbidden,
 				Errors: "permission denied, you've been reported",
@@ -122,7 +122,7 @@ func UserInfoUpdate(c *fiber.Ctx) error {
 		} // only admin can update role
 	} else {
 		if updateInfo.Role != nil && c.Locals("role").(models.UserRole) <= *updateInfo.Role {
-			logrus.Warnf("user %s try to overstep update role of user %s", uId, qId)
+			logrus.Warnf("user %d try to overstep update role of user %s", uId, qId)
 			return c.Status(fiber.StatusForbidden).JSON(mw.User{
 				Status: fiber.StatusForbidden,
 				Errors: "permission denied, you've been reported",

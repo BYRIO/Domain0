@@ -29,7 +29,7 @@ type TencentDNS struct {
 	// Data     string `json:"data"`
 	Priority uint64           `json:"priority"`
 	Custom   TencentDNSCustom `json:"custom"`
-	Domain   models.Domain `json:"-"`
+	Domain   models.Domain    `json:"-"`
 }
 
 type TencentDNSList struct {
@@ -47,8 +47,8 @@ func (t *TencentDNS) Create() error {
 	}
 
 	// logging info
-	logrus.Info("Create DNS record: ", t)
-	logrus.Debug("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
+	logrus.Infof("Create DNS record: %v", t)
+	logrus.Debugf("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
 
 	// create dns record
 	client, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
@@ -122,8 +122,8 @@ func (t *TencentDNS) Delete() error {
 	}
 
 	// logging info
-	logrus.Info("Delete DNS record: ", t)
-	logrus.Debug("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
+	logrus.Infof("Delete DNS record: %v", t)
+	logrus.Debugf("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
 
 	// delete dns record
 	client, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
@@ -149,8 +149,8 @@ func (t *TencentDNS) Update() error {
 	}
 
 	// logging info
-	logrus.Info("Update DNS record: ", t)
-	logrus.Debug("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
+	logrus.Infof("Update DNS record: %v", t)
+	logrus.Debugf("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
 
 	// update dns record
 	client, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
@@ -211,8 +211,8 @@ func (c *TencentDNSList) GetDNSList(d *models.Domain) error {
 	}
 
 	// logging info
-	logrus.Info("Get DNS record list: ", d)
-	logrus.Debug("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
+	logrus.Infof("Get DNS record list: %v", d)
+	logrus.Debugf("Auth with Secret_Id: %s, Secret_Key: %s", secretId, secretKey)
 
 	// get dns record list
 	api, err := dnspod.NewClient(common.NewCredential(secretId, secretKey), "ap-guangzhou", dnsProfile)
